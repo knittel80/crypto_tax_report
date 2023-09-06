@@ -1,8 +1,28 @@
 #!/usr/bin/python3
 
-
 import csv
 import datetime
+import re
+from enum import Enum
+
+# Define a currency enum class
+class Currency(Enum):
+    CRO = 1
+    SOL = 2
+    ADA = 3
+    DOT = 4
+    USDT = 5
+    ETH = 6
+    ATOM = 7
+    XRP = 8
+    LINK = 9
+    VVS = 10
+    MANA = 11
+    ELON = 12
+    EUR = 13
+
+# Define the regex pattern with named groups
+currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
 
 def getDateTimeObject(dateTimeAsString):
     print(dateTimeAsString)
@@ -16,6 +36,45 @@ def getDateTimeObject(dateTimeAsString):
             print("The string {dateTimeAsString} could not be evaluated.")
         return (False, dateTimeAsString)
     return (True, datetime.datetime(year, month, day, hours, minutes, seconds))
+
+def matchCurrencyExchangePattern(stringToMatch):
+    isAMatch = False
+    fromCurrency = ""
+    toCurrency = ""
+    matchResult = re.match(currencyExchangePattern,stringToMatch)
+    if matchResult:
+        isAMatch = True
+        fromCurrency = match.group('FromCurrency')
+        toCurrency = match.group('ToCurrency')
+    return (isAMatch, fromCurrency, toCurrency)
+
+def buyCryptoCurrencyWithEuro(stringToMatch):
+    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
+    if isAMatch and fromCurrency==Currency.EUR.name:
+        return (True, toCurrency)
+    return (False, '')
+
+def sellCryptoCurrencyGetEuro(stringToMatch):
+    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
+    if isAMatch and toCurrency==Currency.EUR.name:
+        return (True, fromCurrency)
+    return (False, '')
+
+
+class CurrencyEntry:
+    def __init__(self, dateTime, amount, actualValueEuro):
+        self.dateTime = dateTime
+        self.amount = amount
+        self.valueInEuro = actualValueEuro
+
+class CurrencyData:
+    def __init__(self):
+        self.dataSet = {}
+
+    def add(self, cryptoCurrency, currencyEntry):
+        if not cryptoCurrency in dataSet:
+            self.dataSet[cryptoCurrency] = []
+        self.dataSet[cryptoCurrency].append(currencyEntry)
 
 def main():
     transactionList = []
