@@ -44,7 +44,7 @@ class TaxPolicy(Enum):
 # Define the regex pattern with named groups
 currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
 
-def getDateTimeObject(dateTimeAsString):
+def get_date_time_object(dateTimeAsString):
     print(dateTimeAsString)
     try:
         dateAsString, timeAsString = dateTimeAsString.split()
@@ -68,19 +68,19 @@ def matchCurrencyExchangePattern(stringToMatch):
         toCurrency = match.group('ToCurrency')
     return (isAMatch, fromCurrency, toCurrency)
 
-def matchBuyCryptoCurrencyWithEuro(stringToMatch):
+def match_buy_crypto_currency_with_euro(stringToMatch):
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
     if isAMatch and fromCurrency==Currency.EUR.name:
         return True
     return False
 
-def matchSellCryptoCurrencyGetEuro(stringToMatch):
+def match_sell_crypto_currency_get_euro(stringToMatch):
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
     if isAMatch and toCurrency==Currency.EUR.name:
         return True
     return False
 
-def matchSwapOfCryptoCurrency(stringToMatch):
+def match_swap_of_crypto_currency(stringToMatch):
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
     if isAMatch and fromCurrency!=Currency.EUR.name and toCurrency!=Currency.EUR.name:
         return True
@@ -94,8 +94,12 @@ class CurrencyEntry:
         self.taxPolicy = TaxPolicy.CAPTIAL_GAINS
 
 
-def setCurrencyEntryFromRawDataEntry():
-    return 0
+def set_currency_entry_from_raw_data_entry(rawDataEntry):
+    dateTime = get_date_time_object(rawDataEntry)
+    cryptoAmount = float(rawDataEntry[Heading.TARGET_AMOUNT.value])
+    euroAmount = float(rawDataEntry[Heading.NATIVE_CURRENCY_AMOUNT.value])
+    return CurrencyEntry(dateTime, cryptoAmount, euroAmount)
+
 
 class TransactionRemover:
     def __init__(self, initialCryptoAmount):
@@ -121,10 +125,8 @@ class TransactionData:
 
     def add(self, rawDataEntry):
         crypoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
-        dateTime = getDateTimeObject(rawDataEntry)
-        cryptoAmount = rawDataEntry[Heading.TARGET_AMOUNT.value] 
-        euroAmount = rawDataEntry[Heading.NATIVE_CURRENCY_AMOUNT.value]
-        self.__add(cryptoCurrency, CurrencyEntry(dataTime, cryptoAmount, euroAmount))
+        currencyEntry = set_currency_entry_from_raw_data_entry(rawDataEntry)
+        self.__add(cryptoCurrency, currencyEntry)
 
     def __add(self, cryptoCurrency, currencyEntry):
         if not cryptoCurrency in dataSet:
@@ -146,10 +148,9 @@ class TransactionData:
     def swap(self, rawDataEntry):
         boughtAt = self.remove(rawDataEntry)
         crypoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
-        dateTime = getDateTimeObject(rawDataEntry)
-        cryptoAmount = rawDataEntry[Heading.TARGET_AMOUNT.value] 
-        euroAmount = boughtAt
-        self.__add(cryptoCurrency, CurrencyEntry(dataTime, cryptoAmount, euroAmount))
+        currencyEntry = set_currency_entry_from_raw_data_entry(rawDataEntry)
+        currencyEntry.euroAmount = boughtAt
+        self.__add(cryptoCurrency, crypoCurrency)
 
 class ProfitCalculator:
     def __init__(self, transactionData):
@@ -160,11 +161,11 @@ class ProfitCalculator:
         return 0 
 
     def __processRawEntry(self, rawDataEntry):
-        if matchBuyCryptoCurrencyWithEuro(rawDataEntry):
+        if match_buy_crypto_currency_with_euro(rawDataEntry):
             return
-        if matchSellCryptoCurrencyGetEuro(rawDataEntry):
+        if match_sell_crypto_currency_get_euro(rawDataEntry):
             return
-        if matchSwapOfCryptoCurrency(rawDataEntry):
+        if match_swap_of_crypto_currency(rawDataEntry):
             return
 
 
@@ -174,7 +175,7 @@ def main():
     with open('crypto_transactions_record_20230619_084542.csv', newline='') as csvfile:
         taxReportReader = csv.reader(csvfile, delimiter=',')
         for row in taxReportReader:
-            validDateTime, dateTime = getDateTimeObject(row[Heading.TIMESTAMP.value])
+            validDateTime, dateTime = get_date_time_object(row[Heading.TIMESTAMP.value])
             if validDateTime:
                 dateTimes.append(dateTime)
             newTransaction = row[Heading.IDENTIFIER.value]
