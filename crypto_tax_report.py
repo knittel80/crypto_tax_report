@@ -64,8 +64,8 @@ def matchCurrencyExchangePattern(stringToMatch):
     matchResult = re.match(currencyExchangePattern,stringToMatch)
     if matchResult:
         isAMatch = True
-        fromCurrency = match.group('FromCurrency')
-        toCurrency = match.group('ToCurrency')
+        fromCurrency = matchResult.group('FromCurrency')
+        toCurrency = matchResult.group('ToCurrency')
     return (isAMatch, fromCurrency, toCurrency)
 
 def match_buy_crypto_currency_with_euro(stringToMatch):

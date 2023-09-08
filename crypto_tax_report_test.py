@@ -56,10 +56,44 @@ class TestRawDataConversions(unittest.TestCase):
         self.assertFalse(parse_successful)
         self.assertEqual(parse_result, None)
 
+    def test_match_buy_crypto_currency_with_euro(self):
+        match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(r'EUR -> ADA')
+        self.assertTrue(match_successful)
+        match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(r'   EUR   ->    CRO  ')
+        self.assertTrue(match_successful)
+        # Test cases where the match is unsuccessful
+        match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(r'CRO -> ADA')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(r'CRO -> EUR')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(r'Random content!!')
+        self.assertFalse(match_successful)
 
+    def test_match_sell_crypto_currency_get_euro(self):
+        match_successful = crypto_tax_report.match_sell_crypto_currency_get_euro(r'CRO -> EUR')
+        self.assertTrue(match_successful)
+        match_successful = crypto_tax_report.match_sell_crypto_currency_get_euro(r'   ETH   ->    EUR  ')
+        self.assertTrue(match_successful)
+        # Test cases where the match is unsuccessful
+        match_successful = crypto_tax_report.match_sell_crypto_currency_get_euro(r'CRO -> ADA')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_sell_crypto_currency_get_euro(r'EUR -> ETH')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_sell_crypto_currency_get_euro(r'Random content!!')
+        self.assertFalse(match_successful)
 
-
-        
+    def test_match_swap_of_crypto_currency(self):
+        match_successful = crypto_tax_report.match_swap_of_crypto_currency(r'CRO -> ADA')
+        self.assertTrue(match_successful)
+        match_successful = crypto_tax_report.match_swap_of_crypto_currency(r'   ETH   ->    SOL  ')
+        self.assertTrue(match_successful)
+        # Test cases where the match is unsuccessful
+        match_successful = crypto_tax_report.match_swap_of_crypto_currency(r'CRO -> EUR')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_swap_of_crypto_currency(r'EUR -> ETH')
+        self.assertFalse(match_successful)
+        match_successful = crypto_tax_report.match_swap_of_crypto_currency(r'Random content!!')
+        self.assertFalse(match_successful)
 
 if __name__ == '__main__':
     unittest.main()
