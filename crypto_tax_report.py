@@ -45,17 +45,17 @@ class TaxPolicy(Enum):
 currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
 
 def get_date_time_object(dateTimeAsString):
-    print(dateTimeAsString)
     try:
         dateAsString, timeAsString = dateTimeAsString.split()
         yearAsString, monthAsString, dayAsString = dateAsString.split('-')
         hoursAsString, minutesAsString, secondsAsString = timeAsString.split(':')
         year, month, day, hours, minutes, seconds = int(yearAsString), int(monthAsString), int(dayAsString), int(hoursAsString), int(minutesAsString), int(secondsAsString)
+        result = datetime.datetime(year, month, day, hours, minutes, seconds)
     except ValueError as ve:
         if not dateTimeAsString=="Timestamp (UTC)":
-            print("The string {dateTimeAsString} could not be evaluated.")
-        return (False, dateTimeAsString)
-    return (True, datetime.datetime(year, month, day, hours, minutes, seconds))
+            print(f'The string {dateTimeAsString} could not be evaluated.')
+        return (False, None)
+    return (True, result)
 
 def matchCurrencyExchangePattern(stringToMatch):
     isAMatch = False
