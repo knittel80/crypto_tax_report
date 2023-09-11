@@ -25,17 +25,15 @@ class Currency(Enum):
 class Heading(Enum):
     TIMESTAMP = 0
     IDENTIFIER = 1
-    CURRENCY = 2
-    CURRENCY_AMOUNT = 3
+    SOURCE_CURRENCY = 2
+    SOURCE_AMOUNT = 3
     TARGET_CURRENCY = 4
     TARGET_AMOUNT = 5
-    SOURCE_CURRENCY = 6
-    SOURCE_AMOUNT = 7
-    NATIVE_CURRENCY = 8
-    NATIVE_CURRENCY_AMOUNT = 9
-    DOLLAR_AMOUNT = 10
-    INTERNAL_IDENTIFIER = 11
-    HASH_KEY = 12
+    NATIVE_CURRENCY = 6
+    NATIVE_CURRENCY_AMOUNT = 7
+    DOLLAR_AMOUNT = 8
+    INTERNAL_IDENTIFIER = 9
+    HASH_KEY = 10
 
 class TaxPolicy(Enum):
     EXEMPT = 0
@@ -91,11 +89,11 @@ class CurrencyEntry:
         self.dateTime = dateTime
         self.amount = amount
         self.boughtAt = actualValueEuro
-        self.taxPolicy = TaxPolicy.CAPTIAL_GAINS
+        self.taxPolicy = TaxPolicy.CAPITAL_GAINS
 
 
 def set_currency_entry_from_raw_data_entry(rawDataEntry):
-    dateTime = get_date_time_object(rawDataEntry)
+    dateTime = get_date_time_object(rawDataEntry[Heading.TIMESTAMP.value])
     cryptoAmount = float(rawDataEntry[Heading.TARGET_AMOUNT.value])
     euroAmount = float(rawDataEntry[Heading.NATIVE_CURRENCY_AMOUNT.value])
     return CurrencyEntry(dateTime, cryptoAmount, euroAmount)
@@ -124,25 +122,26 @@ class TransactionData:
         self.dataSet = {}
 
     def add(self, rawDataEntry):
-        crypoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
+        cryptoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
         currencyEntry = set_currency_entry_from_raw_data_entry(rawDataEntry)
         self.__add(cryptoCurrency, currencyEntry)
 
     def __add(self, cryptoCurrency, currencyEntry):
-        if not cryptoCurrency in dataSet:
+        if not cryptoCurrency in self.dataSet:
             self.dataSet[cryptoCurrency] = []
+        print(f"Adding entry for crypto currency {cryptoCurrency}")
         self.dataSet[cryptoCurrency].append(currencyEntry)
         
     def remove(self, rawDataEntry):
         crypoCurrency = rawDataEntry[Heading.SOURCE__CURRENCY.value]
-        if not cryptoCurrency in dataSet:
+        if not cryptoCurrency in self.dataSet:
             print("Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
             return 0.0
         amount = rawDataEntry[Heading.SOURCE_AMOUNT.value]
         transactionRemover = TransactionRemover(amount)
-        for currencyEntry in dataSet[cryptoCurrency]:
+        for currencyEntry in self.dataSet[cryptoCurrency]:
             transactionRemover(currencyEntry)
-        dataSet[cryptoCurrency] = transactionRemover.newCryptoTransactions
+        self.dataSet[cryptoCurrency] = transactionRemover.newCryptoTransactions
         return float(transactionRemover.removedCryptoBoughtAt)
 
     def swap(self, rawDataEntry):
