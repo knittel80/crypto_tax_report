@@ -131,6 +131,7 @@ class TransactionData:
             self.dataSet[cryptoCurrency] = []
         print(f"Adding entry for crypto currency {cryptoCurrency}")
         self.dataSet[cryptoCurrency].append(currencyEntry)
+        self.dataSet[cryptoCurrency].sort(key=lambda x: x.dateTime)
         
     def remove(self, rawDataEntry):
         crypoCurrency = rawDataEntry[Heading.SOURCE__CURRENCY.value]

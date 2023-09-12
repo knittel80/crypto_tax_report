@@ -142,6 +142,27 @@ class TransactionDataTest(unittest.TestCase):
         #check the SOL entry
         self.assert_transaction_data_entry(self.transaction_data.dataSet['SOL'][0],test_data[-1])
 
+    # Test case: Test the 'add' method, but do not add the entries according to their chronological order
+    def test_add_unsorted(self):
+        test_data = TransactionDataTest.getTestData()
+        for item in reversed(test_data):
+            self.transaction_data.add(item) # add in reverse order
+
+        # Assert the expected result
+        self.assertEqual(len(self.transaction_data.dataSet), 3)
+        self.assertEqual(len(self.transaction_data.dataSet['CRO']),3)
+        #check all three entries
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['CRO'][0],test_data[1])
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['CRO'][1],test_data[3])
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['CRO'][2],test_data[4])
+        self.assertEqual(len(self.transaction_data.dataSet['ADA']),2)
+        #check all two ADA entries
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['ADA'][0],test_data[0])
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['ADA'][1],test_data[2])
+        self.assertEqual(len(self.transaction_data.dataSet['SOL']),1)
+        #check the SOL entry
+        self.assert_transaction_data_entry(self.transaction_data.dataSet['SOL'][0],test_data[-1])
+
 
 if __name__ == '__main__':
     unittest.main()
