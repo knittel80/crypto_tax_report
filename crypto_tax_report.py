@@ -101,7 +101,7 @@ def set_currency_entry_from_raw_data_entry(rawDataEntry):
 
 class TransactionRemover:
     def __init__(self, initialCryptoAmount):
-        self.cryptoAmountToBeRemoved = initialCryptoAmount
+        self.cryptoAmountToBeRemoved = float(initialCryptoAmount)
         self.removedCryptoBoughtAt = 0.0
         self.newCryptoTransactions = []
 
@@ -134,7 +134,7 @@ class TransactionData:
         self.dataSet[cryptoCurrency].sort(key=lambda x: x.dateTime)
         
     def remove(self, rawDataEntry):
-        crypoCurrency = rawDataEntry[Heading.SOURCE__CURRENCY.value]
+        cryptoCurrency = rawDataEntry[Heading.SOURCE_CURRENCY.value]
         if not cryptoCurrency in self.dataSet:
             print("Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
             return 0.0
