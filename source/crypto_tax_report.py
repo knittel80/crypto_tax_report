@@ -7,6 +7,8 @@ import re
 from enum import Enum
 
 # Define a currency enum class
+
+
 class Currency(Enum):
     CRO = 1
     SOL = 2
@@ -22,6 +24,7 @@ class Currency(Enum):
     ELON = 12
     EUR = 13
 
+
 class Heading(Enum):
     TIMESTAMP = 0
     IDENTIFIER = 1
@@ -35,54 +38,67 @@ class Heading(Enum):
     INTERNAL_IDENTIFIER = 9
     HASH_KEY = 10
 
+
 class TaxPolicy(Enum):
     EXEMPT = 0
     CAPITAL_GAINS = 1
 
+
 # Define the regex pattern with named groups
 currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
+
 
 def get_date_time_object(dateTimeAsString):
     try:
         dateAsString, timeAsString = dateTimeAsString.split()
         yearAsString, monthAsString, dayAsString = dateAsString.split('-')
-        hoursAsString, minutesAsString, secondsAsString = timeAsString.split(':')
-        year, month, day, hours, minutes, seconds = int(yearAsString), int(monthAsString), int(dayAsString), int(hoursAsString), int(minutesAsString), int(secondsAsString)
+        hoursAsString, minutesAsString, secondsAsString = timeAsString.split(
+            ':')
+        year, month, day, hours, minutes, seconds = int(yearAsString), int(monthAsString), int(
+            dayAsString), int(hoursAsString), int(minutesAsString), int(secondsAsString)
         result = datetime.datetime(year, month, day, hours, minutes, seconds)
     except ValueError as ve:
-        if not dateTimeAsString=="Timestamp (UTC)":
+        if not dateTimeAsString == "Timestamp (UTC)":
             print(f'The string {dateTimeAsString} could not be evaluated.')
         return (False, None)
     return (True, result)
+
 
 def matchCurrencyExchangePattern(stringToMatch):
     isAMatch = False
     fromCurrency = ""
     toCurrency = ""
-    matchResult = re.match(currencyExchangePattern,stringToMatch)
+    matchResult = re.match(currencyExchangePattern, stringToMatch)
     if matchResult:
         isAMatch = True
         fromCurrency = matchResult.group('FromCurrency')
         toCurrency = matchResult.group('ToCurrency')
     return (isAMatch, fromCurrency, toCurrency)
 
+
 def match_buy_crypto_currency_with_euro(stringToMatch):
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
-    if isAMatch and fromCurrency==Currency.EUR.name:
+    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
+        stringToMatch)
+    if isAMatch and fromCurrency == Currency.EUR.name:
         return True
     return False
+
 
 def match_sell_crypto_currency_get_euro(stringToMatch):
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
-    if isAMatch and toCurrency==Currency.EUR.name:
+    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
+        stringToMatch)
+    if isAMatch and toCurrency == Currency.EUR.name:
         return True
     return False
 
+
 def match_swap_of_crypto_currency(stringToMatch):
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(stringToMatch)
-    if isAMatch and fromCurrency!=Currency.EUR.name and toCurrency!=Currency.EUR.name:
+    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
+        stringToMatch)
+    if isAMatch and fromCurrency != Currency.EUR.name and toCurrency != Currency.EUR.name:
         return True
     return False
+
 
 class CurrencyEntry:
     def __init__(self, dateTime, amount, actualValueEuro):
@@ -110,12 +126,16 @@ class TransactionRemover:
             self.cryptoAmountToBeRemoved -= currencyEntry.amount
             self.removedCryptoBoughtAt += currencyEntry.boughtAt
         elif self.cryptoAmountToBeRemoved > 0.0:
-            relativeReductionOfEntry = ( currencyEntry.amount - self.cryptoAmountToBeRemoved ) / currencyEntry.amount
-            self.removedCryptoBoughtAt += (1.0 - relativeReductionofEntry) * currencyEntry.boughtAt
-            self.newCryptoTransactions.append(CurrencyEntry(currencyEntry.dateTime, currencyEntry.amount - self.cryptoAmountToBeRemoved, currencyEntry.boughtAt * relativeReductionOfEntry))
+            relativeReductionOfEntry = (
+                currencyEntry.amount - self.cryptoAmountToBeRemoved) / currencyEntry.amount
+            self.removedCryptoBoughtAt += (1.0 -
+                                           relativeReductionofEntry) * currencyEntry.boughtAt
+            self.newCryptoTransactions.append(CurrencyEntry(
+                currencyEntry.dateTime, currencyEntry.amount - self.cryptoAmountToBeRemoved, currencyEntry.boughtAt * relativeReductionOfEntry))
             self.cryptoAmountToBeRemoved = 0.0
         else:
             self.newCryptoTransactions.append(currencyEntry)
+
 
 class TransactionData:
     def __init__(self):
@@ -132,11 +152,12 @@ class TransactionData:
         print(f"Adding entry for crypto currency {cryptoCurrency}")
         self.dataSet[cryptoCurrency].append(currencyEntry)
         self.dataSet[cryptoCurrency].sort(key=lambda x: x.dateTime)
-        
+
     def remove(self, rawDataEntry):
         cryptoCurrency = rawDataEntry[Heading.SOURCE_CURRENCY.value]
         if not cryptoCurrency in self.dataSet:
-            print("Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
+            print(
+                "Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
             return 0.0
         amount = rawDataEntry[Heading.SOURCE_AMOUNT.value]
         transactionRemover = TransactionRemover(amount)
@@ -152,13 +173,14 @@ class TransactionData:
         currencyEntry.euroAmount = boughtAt
         self.__add(cryptoCurrency, crypoCurrency)
 
+
 class ProfitCalculator:
     def __init__(self, transactionData):
         self.transactionData = transactionData
         self.taxableProfit = 0.0
 
     def processData(self, rawTransactionData):
-        return 0 
+        return 0
 
     def __processRawEntry(self, rawDataEntry):
         if match_buy_crypto_currency_with_euro(rawDataEntry):
@@ -175,7 +197,8 @@ def main():
     with open('crypto_transactions_record_20230619_084542.csv', newline='') as csvfile:
         taxReportReader = csv.reader(csvfile, delimiter=',')
         for row in taxReportReader:
-            validDateTime, dateTime = get_date_time_object(row[Heading.TIMESTAMP.value])
+            validDateTime, dateTime = get_date_time_object(
+                row[Heading.TIMESTAMP.value])
             if validDateTime:
                 dateTimes.append(dateTime)
             newTransaction = row[Heading.IDENTIFIER.value]
@@ -183,8 +206,8 @@ def main():
                 transactionList.append(newTransaction)
     dateTimes.reverse()
     for item in transactionList:
-       print(item) 
-        
+        print(item)
 
-if "__main__"==__name__:
+
+if "__main__" == __name__:
     main()
