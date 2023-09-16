@@ -10,6 +10,7 @@ from enum import Enum
 
 
 class Currency(Enum):
+    """ Identifiers for all handled crypto currencies."""
     CRO = 1
     SOL = 2
     ADA = 3
@@ -26,6 +27,7 @@ class Currency(Enum):
 
 
 class Heading(Enum):
+    """ Identifiers for the columns of the read-in crypto.com csv file."""
     TIMESTAMP = 0
     IDENTIFIER = 1
     SOURCE_CURRENCY = 2
@@ -40,6 +42,9 @@ class Heading(Enum):
 
 
 class TaxPolicy(Enum):
+    """ The TaxPolixy states how a profit has to be considered with regards to
+    taxation.
+    """
     EXEMPT = 0
     CAPITAL_GAINS = 1
 
@@ -49,6 +54,12 @@ currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w
 
 
 def get_date_time_object(dateTimeAsString):
+    """
+    Function for converting a string to a datetime.datetime object.
+    The return values' first element states whether the conversion has been
+    successful. If it has been successful, the datetime.datetime object is 
+    returned as the second element.
+    """
     try:
         dateAsString, timeAsString = dateTimeAsString.split()
         yearAsString, monthAsString, dayAsString = dateAsString.split('-')
@@ -65,6 +76,14 @@ def get_date_time_object(dateTimeAsString):
 
 
 def matchCurrencyExchangePattern(stringToMatch):
+    """
+    Check whether the given string matches the pattern
+    '<currency1> -> <currency2>', where <currency1> and <currency2>
+    are strings, which should represent an arbitrary currency (like
+    EUR for Euro) or crypto currency (like ADA). Currently it is not
+    checked whether the currency is matches an element of the
+    currency enum.
+    """
     isAMatch = False
     fromCurrency = ""
     toCurrency = ""
@@ -77,6 +96,11 @@ def matchCurrencyExchangePattern(stringToMatch):
 
 
 def match_buy_crypto_currency_with_euro(stringToMatch):
+    """
+    Check whether the given string matches the pattern 'EUR -> <currency2>',
+    where <currency2 is an arbitrary crypto currency. It is not checked
+    whether this crypto currency is known in any way.
+    """
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
         stringToMatch)
     if isAMatch and fromCurrency == Currency.EUR.name:
@@ -85,6 +109,12 @@ def match_buy_crypto_currency_with_euro(stringToMatch):
 
 
 def match_sell_crypto_currency_get_euro(stringToMatch):
+    """
+    Check whether the given string matches the pattern '<currency1> -> EUR',
+    where <currency1> is an arbitrary crypto currency. It is not checked
+    whether this crypto currency is known in any way.
+    """
+
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
         stringToMatch)
     if isAMatch and toCurrency == Currency.EUR.name:
@@ -93,6 +123,12 @@ def match_sell_crypto_currency_get_euro(stringToMatch):
 
 
 def match_swap_of_crypto_currency(stringToMatch):
+    """
+    Check whether the given string matches the pattern
+    '<currency1> -> <currency2>', where <currency1> and <currency2> are
+    arbitrary crypto currencies. It is not checked whether these crypto
+    currencies are known in any way, only that they are not equal to 'EUR'.
+    """
     isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
         stringToMatch)
     if isAMatch and fromCurrency != Currency.EUR.name and toCurrency != Currency.EUR.name:
@@ -101,6 +137,12 @@ def match_swap_of_crypto_currency(stringToMatch):
 
 
 class CurrencyEntry:
+    """
+    Class representing a data entry for the purchase of a crypto currency.
+    It contains all relevant data in order to compute the capital gains tax,
+    if the crypto currency is sold again.
+    """
+
     def __init__(self, dateTime, amount, actualValueEuro):
         self.dateTime = dateTime
         self.amount = amount
@@ -109,6 +151,10 @@ class CurrencyEntry:
 
 
 def set_currency_entry_from_raw_data_entry(rawDataEntry):
+    """
+    Functon to convert the list representing a data row in crypto.com's
+    csv file to an object of type CurrencyEntry.
+    """
     dateTime = get_date_time_object(rawDataEntry[Heading.TIMESTAMP.value])
     cryptoAmount = float(rawDataEntry[Heading.TARGET_AMOUNT.value])
     euroAmount = float(rawDataEntry[Heading.NATIVE_CURRENCY_AMOUNT.value])
