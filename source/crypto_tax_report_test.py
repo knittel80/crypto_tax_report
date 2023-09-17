@@ -147,7 +147,8 @@ class CryptoAquisitionDataTest(unittest.TestCase):
     def assert_crypto_aquisition_data_entry(self, crypto_aquisition_data_entry, raw_data_entry):
         expected_date_time = crypto_tax_report.get_date_time_object(
             raw_data_entry[crypto_tax_report.Heading.TIMESTAMP.value])
-        self.assertEqual(expected_date_time, crypto_aquisition_data_entry.dateTime)
+        self.assertEqual(expected_date_time,
+                         crypto_aquisition_data_entry.dateTime)
         self.assertEqual(float(
             raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]), crypto_aquisition_data_entry.amount)
         self.assertEqual(float(
