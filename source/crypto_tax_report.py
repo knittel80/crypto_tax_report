@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 
+"""
+The module provides functionality for parsing the transactions of a crypto.com csv file
+and calculating the amount of profit for which Germain capital gains taxes have to be paid.
+"""
+
 import csv
 import datetime
 import functools
@@ -50,10 +55,10 @@ class TaxPolicy(Enum):
 
 
 # Define the regex pattern with named groups
-currencyExchangePattern = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
+CURRENCY_EXCHANGE_PATTERN = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[\w]+)\s*'
 
 
-def get_date_time_object(dateTimeAsString):
+def get_date_time_object(datetime_as_string):
     """
     Function for converting a string to a datetime.datetime object.
     The return values' first element states whether the conversion has been
@@ -61,16 +66,13 @@ def get_date_time_object(dateTimeAsString):
     returned as the second element.
     """
     try:
-        dateAsString, timeAsString = dateTimeAsString.split()
-        yearAsString, monthAsString, dayAsString = dateAsString.split('-')
-        hoursAsString, minutesAsString, secondsAsString = timeAsString.split(
-            ':')
-        year, month, day, hours, minutes, seconds = int(yearAsString), int(monthAsString), int(
-            dayAsString), int(hoursAsString), int(minutesAsString), int(secondsAsString)
+        date_as_string, time_as_string = datetime_as_string.split()
+        year, month, day = [int(element) for element in date_as_string.split('-')]
+        hours, minutes, seconds = [int(element) for element in time_as_string.split(':')]
         result = datetime.datetime(year, month, day, hours, minutes, seconds)
     except ValueError as ve:
-        if not dateTimeAsString == "Timestamp (UTC)":
-            print(f'The string {dateTimeAsString} could not be evaluated.')
+        if not datetime_as_string == "Timestamp (UTC)":
+            print(f'The string {datetime_as_string} could not be evaluated.')
         return (False, None)
     return (True, result)
 
@@ -87,7 +89,7 @@ def matchCurrencyExchangePattern(stringToMatch):
     isAMatch = False
     fromCurrency = ""
     toCurrency = ""
-    matchResult = re.match(currencyExchangePattern, stringToMatch)
+    matchResult = re.match(CURRENCY_EXCHANGE_PATTERN, stringToMatch)
     if matchResult:
         isAMatch = True
         fromCurrency = matchResult.group('FromCurrency')
