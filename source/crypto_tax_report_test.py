@@ -148,11 +148,11 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         expected_date_time = crypto_tax_report.get_date_time_object(
             raw_data_entry[crypto_tax_report.Heading.TIMESTAMP.value])
         self.assertEqual(expected_date_time,
-                         crypto_aquisition_data_entry.dateTime)
+                         crypto_aquisition_data_entry.date_time)
         self.assertEqual(float(
             raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]), crypto_aquisition_data_entry.amount)
         self.assertEqual(float(
-            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]), crypto_aquisition_data_entry.boughtAt)
+            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]), crypto_aquisition_data_entry.bought_at)
 
     # Test case: Test the 'add' method
     def test_add(self):
@@ -161,25 +161,25 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             self.crypto_aquisition_data.add(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 3)
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['CRO']), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
         # check all three entries
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][0], test_data[1])
+            self.crypto_aquisition_data.data_set['CRO'][0], test_data[1])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][1], test_data[3])
+            self.crypto_aquisition_data.data_set['CRO'][1], test_data[3])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][2], test_data[4])
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['ADA']), 2)
+            self.crypto_aquisition_data.data_set['CRO'][2], test_data[4])
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
         # check all two ADA entries
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['ADA'][0], test_data[0])
+            self.crypto_aquisition_data.data_set['ADA'][0], test_data[0])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['ADA'][1], test_data[2])
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['SOL']), 1)
+            self.crypto_aquisition_data.data_set['ADA'][1], test_data[2])
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
         # check the SOL entry
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['SOL'][0], test_data[-1])
+            self.crypto_aquisition_data.data_set['SOL'][0], test_data[-1])
 
     # Test case: Test the 'add' method, but do not add the entries according to their chronological order
     def test_add_unsorted(self):
@@ -188,25 +188,25 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             self.crypto_aquisition_data.add(item)  # add in reverse order
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 3)
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['CRO']), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
         # check all three entries
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][0], test_data[1])
+            self.crypto_aquisition_data.data_set['CRO'][0], test_data[1])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][1], test_data[3])
+            self.crypto_aquisition_data.data_set['CRO'][1], test_data[3])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['CRO'][2], test_data[4])
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['ADA']), 2)
+            self.crypto_aquisition_data.data_set['CRO'][2], test_data[4])
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
         # check all two ADA entries
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['ADA'][0], test_data[0])
+            self.crypto_aquisition_data.data_set['ADA'][0], test_data[0])
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['ADA'][1], test_data[2])
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet['SOL']), 1)
+            self.crypto_aquisition_data.data_set['ADA'][1], test_data[2])
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
         # check the SOL entry
         self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.dataSet['SOL'][0], test_data[-1])
+            self.crypto_aquisition_data.data_set['SOL'][0], test_data[-1])
 
     @staticmethod
     def getTestDataForRemoval():
@@ -242,7 +242,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             self.crypto_aquisition_data.remove(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 2)
+        self.assertEqual(len(self.crypto_aquisition_data.data_set), 2)
 
 
 if __name__ == '__main__':

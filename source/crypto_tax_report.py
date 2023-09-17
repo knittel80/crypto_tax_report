@@ -70,14 +70,14 @@ def get_date_time_object(datetime_as_string):
         year, month, day = [int(element) for element in date_as_string.split('-')]
         hours, minutes, seconds = [int(element) for element in time_as_string.split(':')]
         result = datetime.datetime(year, month, day, hours, minutes, seconds)
-    except ValueError as ve:
+    except ValueError:
         if not datetime_as_string == "Timestamp (UTC)":
             print(f'The string {datetime_as_string} could not be evaluated.')
         return (False, None)
     return (True, result)
 
 
-def matchCurrencyExchangePattern(stringToMatch):
+def match_currency_exchange_pattern(string_to_match):
     """
     Check whether the given string matches the pattern
     '<currency1> -> <currency2>', where <currency1> and <currency2>
@@ -86,54 +86,54 @@ def matchCurrencyExchangePattern(stringToMatch):
     checked whether the currency is matches an element of the
     currency enum.
     """
-    isAMatch = False
-    fromCurrency = ""
-    toCurrency = ""
-    matchResult = re.match(CURRENCY_EXCHANGE_PATTERN, stringToMatch)
-    if matchResult:
-        isAMatch = True
-        fromCurrency = matchResult.group('FromCurrency')
-        toCurrency = matchResult.group('ToCurrency')
-    return (isAMatch, fromCurrency, toCurrency)
+    is_a_match = False
+    from_currency = ""
+    to_currency = ""
+    match_result = re.match(CURRENCY_EXCHANGE_PATTERN, string_to_match)
+    if match_result:
+        is_a_match = True
+        from_currency = match_result.group('FromCurrency')
+        to_currency = match_result.group('ToCurrency')
+    return (is_a_match, from_currency, to_currency)
 
 
-def match_buy_crypto_currency_with_euro(stringToMatch):
+def match_buy_crypto_currency_with_euro(string_to_match):
     """
     Check whether the given string matches the pattern 'EUR -> <currency2>',
     where <currency2 is an arbitrary crypto currency. It is not checked
     whether this crypto currency is known in any way.
     """
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
-        stringToMatch)
-    if isAMatch and fromCurrency == Currency.EUR.name:
+    is_a_match, from_currency, _ = match_currency_exchange_pattern(
+        string_to_match)
+    if is_a_match and from_currency == Currency.EUR.name:
         return True
     return False
 
 
-def match_sell_crypto_currency_get_euro(stringToMatch):
+def match_sell_crypto_currency_get_euro(string_to_match):
     """
     Check whether the given string matches the pattern '<currency1> -> EUR',
     where <currency1> is an arbitrary crypto currency. It is not checked
     whether this crypto currency is known in any way.
     """
 
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
-        stringToMatch)
-    if isAMatch and toCurrency == Currency.EUR.name:
+    is_a_match, _, to_currency = match_currency_exchange_pattern(
+        string_to_match)
+    if is_a_match and to_currency == Currency.EUR.name:
         return True
     return False
 
 
-def match_swap_of_crypto_currency(stringToMatch):
+def match_swap_of_crypto_currency(string_to_match):
     """
     Check whether the given string matches the pattern
     '<currency1> -> <currency2>', where <currency1> and <currency2> are
     arbitrary crypto currencies. It is not checked whether these crypto
     currencies are known in any way, only that they are not equal to 'EUR'.
     """
-    isAMatch, fromCurrency, toCurrency = matchCurrencyExchangePattern(
-        stringToMatch)
-    if isAMatch and fromCurrency != Currency.EUR.name and toCurrency != Currency.EUR.name:
+    is_a_match, from_currency, to_currency = match_currency_exchange_pattern(
+        string_to_match)
+    if is_a_match and from_currency != Currency.EUR.name and to_currency != Currency.EUR.name:
         return True
     return False
 
@@ -145,10 +145,10 @@ class CryptoAquisitionRecord:
     gains tax, if the crypto currency is sold again.
     """
 
-    def __init__(self, dateTime, amount, actualValueEuro):
-        self.dateTime = dateTime
+    def __init__(self, date_time, amount, actual_value_euro):
+        self.date_time = date_time
         self.amount = amount
-        self.boughtAt = actualValueEuro
+        self.bought_at = actual_value_euro
         self.taxPolicy = TaxPolicy.CAPITAL_GAINS
 
 
@@ -187,14 +187,14 @@ class CryptoAquisitionRecordRemover:
     def __handle_aquisition_record(self, aquisition_record):
         if self.amount_to_be_removed > aquisition_record.amount:
             self.amount_to_be_removed -= aquisition_record.amount
-            self.removed_crypto_bought_at += aquisition_record.boughtAt
+            self.removed_crypto_bought_at += aquisition_record.bought_at
         elif self.amount_to_be_removed > 0.0:
             relativeReductionOfEntry = (
                 aquisition_record.amount - self.amount_to_be_removed) / aquisition_record.amount
             self.removed_crypto_bought_at += (1.0 -
-                                              relativeReductionofEntry) * aquisition_record.boughtAt
+                                              relativeReductionofEntry) * aquisition_record.bought_at
             self.new_aquisition_records.append(CryptoAquisitionRecord(
-                aquisition_record.dateTime, aquisition_record.amount - self.amount_to_be_removed, aquisition_record.boughtAt * relativeReductionOfEntry))
+                aquisition_record.dateTime, aquisition_record.amount - self.amount_to_be_removed, aquisition_record.bought_at * relativeReductionOfEntry))
             self.amount_to_be_removed = 0.0
         else:
             self.new_aquisition_records.append(aquisition_record)
@@ -208,7 +208,7 @@ class CryptoAquisitionData:
     """
 
     def __init__(self):
-        self.dataSet = {}
+        self.data_set = {}
 
     def add(self, rawDataEntry):
         cryptoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
@@ -216,31 +216,31 @@ class CryptoAquisitionData:
             rawDataEntry)
         self.__add(cryptoCurrency, currencyEntry)
 
-    def __add(self, cryptoCurrency, currencyEntry):
-        if not cryptoCurrency in self.dataSet:
-            self.dataSet[cryptoCurrency] = []
-        print(f"Adding entry for crypto currency {cryptoCurrency}")
-        self.dataSet[cryptoCurrency].append(currencyEntry)
-        self.dataSet[cryptoCurrency].sort(key=lambda x: x.dateTime)
+    def __add(self, crypto_currency, currency_entry):
+        if not crypto_currency in self.data_set:
+            self.data_set[crypto_currency] = []
+        print(f"Adding entry for crypto currency {crypto_currency}")
+        self.data_set[crypto_currency].append(currency_entry)
+        self.data_set[crypto_currency].sort(key=lambda x: x.date_time)
 
     def remove(self, rawDataEntry):
         cryptoCurrency = rawDataEntry[Heading.SOURCE_CURRENCY.value]
-        if not cryptoCurrency in self.dataSet:
+        if not cryptoCurrency in self.data_set:
             print(
                 "Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
             return 0.0
         amount = rawDataEntry[Heading.SOURCE_AMOUNT.value]
         transaction_remover = CryptoAquisitionRecordRemover(
-            self.dataSet[cryptoCurrency], amount)
+            self.data_set[cryptoCurrency], amount)
         transaction_remover()
         return float(transaction_remover.removed_crypto_bought_at)
 
     def swap(self, rawDataEntry):
-        boughtAt = self.remove(rawDataEntry)
+        bought_at = self.remove(rawDataEntry)
         crypoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
         currencyEntry = get_crypto_aquisition_record_from_raw_data_entry(
             rawDataEntry)
-        currencyEntry.euroAmount = boughtAt
+        currencyEntry.euroAmount = bought_at
         self.__add(cryptoCurrency, crypoCurrency)
 
 
