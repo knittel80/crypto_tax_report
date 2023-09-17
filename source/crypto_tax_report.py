@@ -136,13 +136,12 @@ def match_swap_of_crypto_currency(stringToMatch):
     return False
 
 
-class CurrencyEntry:
+class CryptoAquisitionRecord:
     """
-    Class representing a data entry for the purchase of a crypto currency.
-    It contains all relevant data in order to compute the capital gains tax,
-    if the crypto currency is sold again.
+    Class representing a data entry of a single acquisition transaction of a
+    crypto currency. It contains all relevant data in order to compute the capital
+    gains tax, if the crypto currency is sold again.
     """
-
     def __init__(self, dateTime, amount, actualValueEuro):
         self.dateTime = dateTime
         self.amount = amount
@@ -150,46 +149,65 @@ class CurrencyEntry:
         self.taxPolicy = TaxPolicy.CAPITAL_GAINS
 
 
-def set_currency_entry_from_raw_data_entry(rawDataEntry):
+def get_crypto_aquisition_record_from_raw_data_entry(rawDataEntry):
     """
-    Functon to convert the list representing a data row in crypto.com's
-    csv file to an object of type CurrencyEntry.
+    Functon to convert a list, obtained from reading in a data row in crypto.com's
+    csv file, to an object of type CryptoAquisitionRecord.
     """
     dateTime = get_date_time_object(rawDataEntry[Heading.TIMESTAMP.value])
     cryptoAmount = float(rawDataEntry[Heading.TARGET_AMOUNT.value])
     euroAmount = float(rawDataEntry[Heading.NATIVE_CURRENCY_AMOUNT.value])
-    return CurrencyEntry(dateTime, cryptoAmount, euroAmount)
+    return CryptoAquisitionRecord(dateTime, cryptoAmount, euroAmount)
 
 
-class TransactionRemover:
-    def __init__(self, initialCryptoAmount):
-        self.cryptoAmountToBeRemoved = float(initialCryptoAmount)
-        self.removedCryptoBoughtAt = 0.0
-        self.newCryptoTransactions = []
+class CryptoAquisitionRecordRemover:
+    """
+    Functor, whose constructor is called with the list of actual aquisition
+    records of a certain crypto currency and the amount of how much of it should
+    be removed. Upon being called it removes/changes the oldest aquisition
+    records accordingly and updates the acquistion record list. It returns the
+    Euro amount at which the removed amount of crypto currency has been bought.
+    """
+    def __init__(self, aquisition_records, amount_to_remove):
+        self.amount_to_be_removed = float(amount_to_remove)
+        self.removed_crypto_bought_at = 0.0
+        self.new_aquisition_records = []
+        self.old_aquisition_records = aquisition_records
 
-    def __call__(self, currencyEntry):
-        if self.cryptoAmountToBeRemoved > currencyEntry.amount:
-            self.cryptoAmountToBeRemoved -= currencyEntry.amount
-            self.removedCryptoBoughtAt += currencyEntry.boughtAt
-        elif self.cryptoAmountToBeRemoved > 0.0:
+    def __call__(self):
+        for record in self.old_aquisition_records:
+            self.__handle_aquisition_record(record)
+        self.old_aquisition_records = self.new_aquisition_records
+        return self.removed_crypto_bought_at
+        
+    def __handle_aquisition_record(self, aquisition_record):
+        if self.amount_to_be_removed > aquisition_record.amount:
+            self.amount_to_be_removed -= aquisition_record.amount
+            self.removed_crypto_bought_at += aquisition_record.boughtAt
+        elif self.amount_to_be_removed > 0.0:
             relativeReductionOfEntry = (
-                currencyEntry.amount - self.cryptoAmountToBeRemoved) / currencyEntry.amount
-            self.removedCryptoBoughtAt += (1.0 -
-                                           relativeReductionofEntry) * currencyEntry.boughtAt
-            self.newCryptoTransactions.append(CurrencyEntry(
-                currencyEntry.dateTime, currencyEntry.amount - self.cryptoAmountToBeRemoved, currencyEntry.boughtAt * relativeReductionOfEntry))
-            self.cryptoAmountToBeRemoved = 0.0
+                aquisition_record.amount - self.amount_to_be_removed) / aquisition_record.amount
+            self.removed_crypto_bought_at += (1.0 -
+                                           relativeReductionofEntry) * aquisition_record.boughtAt
+            self.new_aquisition_records.append(CryptoAquisitionRecord(
+                aquisition_record.dateTime, aquisition_record.amount - self.amount_to_be_removed, aquisition_record.boughtAt * relativeReductionOfEntry))
+            self.amount_to_be_removed = 0.0
         else:
-            self.newCryptoTransactions.append(currencyEntry)
+            self.new_aquisition_records.append(aquisition_record)
 
 
-class TransactionData:
+class CryptoAquisitionData:
+    """
+    Data class, which holds the aquisitions of each crypto currency. The data
+    can be manipulated by the member function add, remove and swap, which
+    correspond to buying, selling and exchanging crypto currencies.
+    """
     def __init__(self):
         self.dataSet = {}
 
     def add(self, rawDataEntry):
         cryptoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
-        currencyEntry = set_currency_entry_from_raw_data_entry(rawDataEntry)
+        currencyEntry = get_crypto_aquisition_record_from_raw_data_entry(rawDataEntry)
         self.__add(cryptoCurrency, currencyEntry)
 
     def __add(self, cryptoCurrency, currencyEntry):
@@ -206,26 +224,27 @@ class TransactionData:
                 "Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
             return 0.0
         amount = rawDataEntry[Heading.SOURCE_AMOUNT.value]
-        transactionRemover = TransactionRemover(amount)
-        for currencyEntry in self.dataSet[cryptoCurrency]:
-            transactionRemover(currencyEntry)
-        self.dataSet[cryptoCurrency] = transactionRemover.newCryptoTransactions
-        return float(transactionRemover.removedCryptoBoughtAt)
+        transaction_remover = CryptoAquisitionRecordRemover(self.dataSet[cryptoCurrency], amount)
+        transaction_remover()
+        return float(transaction_remover.removed_crypto_bought_at)
 
     def swap(self, rawDataEntry):
         boughtAt = self.remove(rawDataEntry)
         crypoCurrency = rawDataEntry[Heading.TARGET_CURRENCY.value]
-        currencyEntry = set_currency_entry_from_raw_data_entry(rawDataEntry)
+        currencyEntry = get_crypto_aquisition_record_from_raw_data_entry(rawDataEntry)
         currencyEntry.euroAmount = boughtAt
         self.__add(cryptoCurrency, crypoCurrency)
 
 
 class ProfitCalculator:
+    """
+    Class calcuting those profits from crypto transactions, which are tax-relevant.
+    """
     def __init__(self, transactionData):
         self.transactionData = transactionData
         self.taxableProfit = 0.0
 
-    def processData(self, rawTransactionData):
+    def processData(self, raw_crypto_aquisition_data):
         return 0
 
     def __processRawEntry(self, rawDataEntry):

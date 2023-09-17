@@ -119,12 +119,12 @@ class TestRawDataConversions(unittest.TestCase):
         self.assertFalse(match_successful)
 
 
-class TransactionDataTest(unittest.TestCase):
+class CryptoAquisitionDataTest(unittest.TestCase):
 
     # Set up the test environment
     def setUp(self):
         # Initialize an instance of the class to be tested
-        self.transaction_data = crypto_tax_report.TransactionData()
+        self.crypto_aquisition_data = crypto_tax_report.CryptoAquisitionData()
 
     @staticmethod
     def getTestData():
@@ -144,68 +144,68 @@ class TransactionDataTest(unittest.TestCase):
         ]
         return test_data
 
-    def assert_transaction_data_entry(self, transaction_data_entry, raw_data_entry):
+    def assert_crypto_aquisition_data_entry(self, crypto_aquisition_data_entry, raw_data_entry):
         expected_date_time = crypto_tax_report.get_date_time_object(
             raw_data_entry[crypto_tax_report.Heading.TIMESTAMP.value])
-        self.assertEqual(expected_date_time, transaction_data_entry.dateTime)
+        self.assertEqual(expected_date_time, crypto_aquisition_data_entry.dateTime)
         self.assertEqual(float(
-            raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]), transaction_data_entry.amount)
+            raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]), crypto_aquisition_data_entry.amount)
         self.assertEqual(float(
-            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]), transaction_data_entry.boughtAt)
+            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]), crypto_aquisition_data_entry.boughtAt)
 
     # Test case: Test the 'add' method
     def test_add(self):
-        test_data = TransactionDataTest.getTestData()
+        test_data = CryptoAquisitionDataTest.getTestData()
         for item in test_data:
-            self.transaction_data.add(item)
+            self.crypto_aquisition_data.add(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.transaction_data.dataSet), 3)
-        self.assertEqual(len(self.transaction_data.dataSet['CRO']), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['CRO']), 3)
         # check all three entries
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][0], test_data[1])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][1], test_data[3])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][2], test_data[4])
-        self.assertEqual(len(self.transaction_data.dataSet['ADA']), 2)
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][0], test_data[1])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][1], test_data[3])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][2], test_data[4])
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['ADA']), 2)
         # check all two ADA entries
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['ADA'][0], test_data[0])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['ADA'][1], test_data[2])
-        self.assertEqual(len(self.transaction_data.dataSet['SOL']), 1)
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['ADA'][0], test_data[0])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['ADA'][1], test_data[2])
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['SOL']), 1)
         # check the SOL entry
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['SOL'][0], test_data[-1])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['SOL'][0], test_data[-1])
 
     # Test case: Test the 'add' method, but do not add the entries according to their chronological order
     def test_add_unsorted(self):
-        test_data = TransactionDataTest.getTestData()
+        test_data = CryptoAquisitionDataTest.getTestData()
         for item in reversed(test_data):
-            self.transaction_data.add(item)  # add in reverse order
+            self.crypto_aquisition_data.add(item)  # add in reverse order
 
         # Assert the expected result
-        self.assertEqual(len(self.transaction_data.dataSet), 3)
-        self.assertEqual(len(self.transaction_data.dataSet['CRO']), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 3)
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['CRO']), 3)
         # check all three entries
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][0], test_data[1])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][1], test_data[3])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['CRO'][2], test_data[4])
-        self.assertEqual(len(self.transaction_data.dataSet['ADA']), 2)
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][0], test_data[1])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][1], test_data[3])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['CRO'][2], test_data[4])
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['ADA']), 2)
         # check all two ADA entries
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['ADA'][0], test_data[0])
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['ADA'][1], test_data[2])
-        self.assertEqual(len(self.transaction_data.dataSet['SOL']), 1)
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['ADA'][0], test_data[0])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['ADA'][1], test_data[2])
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet['SOL']), 1)
         # check the SOL entry
-        self.assert_transaction_data_entry(
-            self.transaction_data.dataSet['SOL'][0], test_data[-1])
+        self.assert_crypto_aquisition_data_entry(
+            self.crypto_aquisition_data.dataSet['SOL'][0], test_data[-1])
 
     @staticmethod
     def getTestDataForRemoval():
@@ -234,14 +234,14 @@ class TransactionDataTest(unittest.TestCase):
 
     def test_remove(self):
 
-        add_data, remove_data = TransactionDataTest.getTestDataForRemoval()
+        add_data, remove_data = CryptoAquisitionDataTest.getTestDataForRemoval()
         for item in add_data:
-            self.transaction_data.add(item)
+            self.crypto_aquisition_data.add(item)
         for item in remove_data:
-            self.transaction_data.remove(item)
+            self.crypto_aquisition_data.remove(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.transaction_data.dataSet), 2)
+        self.assertEqual(len(self.crypto_aquisition_data.dataSet), 2)
 
 
 if __name__ == '__main__':
