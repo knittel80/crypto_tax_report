@@ -210,6 +210,9 @@ class CryptoAquisitionData:
         self.data_set = {}
 
     def add(self, raw_data_entry):
+        """Add an one-time aquisition of a crypto currency to the data class.
+        The aquistion is given in terms of a crypto.com csv-datafile entry,
+        which has been converted from a string to a list."""
         crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
         currency_entry = get_crypto_aquisition_record_from_raw_data_entry(
             raw_data_entry)
@@ -223,6 +226,11 @@ class CryptoAquisitionData:
         self.data_set[crypto_currency].sort(key=lambda x: x.date_time)
 
     def remove(self, raw_data_entry):
+        """Remove an amount of a crypto currency from the data class. This
+        corresponds to a one-time sale of the crypto currency. The sale is
+        given in terms of a crypto.com csv-datafile entry, which has been
+        converted from a string to a list.
+        """
         crypto_currency = raw_data_entry[Heading.SOURCE_CURRENCY.value]
         if not crypto_currency in self.data_set:
             print(
@@ -235,50 +243,60 @@ class CryptoAquisitionData:
         return float(transaction_remover.removed_crypto_bought_at)
 
     def swap(self, raw_data_entry):
+        """Convert an amount of one crypto currency into another crypto 
+        currency within the data class. This corresponds to buying one crypto
+        currency with another crypto currency. This crypto exchange is given in 
+        terms of a crypto.com csv-datafile entry, which has been converted from
+        a string to a list.
+        """
         bought_at = self.remove(raw_data_entry)
-        crypo_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
+        crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
         currency_entry = get_crypto_aquisition_record_from_raw_data_entry(
             raw_data_entry)
-        currencyEntry.euro_amount = bought_at
+        currency_entry.bought_at = bought_at
         self.__add(crypto_currency, currency_entry)
 
 
-class ProfitCalculator:
+class ProfitCalculator: # pylint: disable=too-few-public-methods
+
     """
     Class calcuting those profits from crypto transactions, which are tax-relevant.
     """
 
-    def __init__(self, transactionData):
-        self.transactionData = transactionData
-        self.taxableProfit = 0.0
+    def __init__(self, crypto_aquistion_data):
+        self.crypto_aquistion_data = crypto_aquistion_data
+        self.taxable_profit = 0.0
 
-    def processData(self, raw_crypto_aquisition_data):
+    def process_data(self, raw_crypto_aquisition_data): # pylint: disable=unused-argument
+
+        """Process the data from a crypto.com csv file."""
         return 0
 
-    def __processRawEntry(self, rawDataEntry):
-        if match_buy_crypto_currency_with_euro(rawDataEntry):
+    def __process_raw_entry(self, raw_data_entry):
+        if match_buy_crypto_currency_with_euro(raw_data_entry):
             return
-        if match_sell_crypto_currency_get_euro(rawDataEntry):
+        if match_sell_crypto_currency_get_euro(raw_data_entry):
             return
-        if match_swap_of_crypto_currency(rawDataEntry):
+        if match_swap_of_crypto_currency(raw_data_entry):
             return
 
 
 def main():
-    transactionList = []
-    dateTimes = []
-    with open('crypto_transactions_record_20230619_084542.csv', newline='') as csvfile:
-        taxReportReader = csv.reader(csvfile, delimiter=',')
-        for row in taxReportReader:
-            validDateTime, dateTime = get_date_time_object(
+    """ Entry point for calling this file directly as a python script."""
+    transaction_list = []
+    date_times = []
+    with open('crypto_transactions_record_20230619_084542.csv', mode='r', newline='') as csvfile:
+        tax_report_reader = csv.reader(csvfile, delimiter=',')
+        for row in tax_report_reader:
+            valid_date_time, date_time = get_date_time_object(
                 row[Heading.TIMESTAMP.value])
-            if validDateTime:
-                dateTimes.append(dateTime)
-            newTransaction = row[Heading.IDENTIFIER.value]
-            if newTransaction not in transactionList:
-                transactionList.append(newTransaction)
-    dateTimes.reverse()
-    for item in transactionList:
+            if valid_date_time:
+                date_times.append(date_time)
+            new_transaction = row[Heading.IDENTIFIER.value]
+            if new_transaction not in transaction_list:
+                transaction_list.append(new_transaction)
+    date_times.reverse()
+    for item in transaction_list:
         print(item)
 
 
