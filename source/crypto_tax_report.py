@@ -7,12 +7,15 @@ and calculating the amount of profit for which Germain capital gains taxes have 
 
 import csv
 import datetime
+import logging
 import re
 from enum import Enum
 from dataclasses import dataclass
 
 # Define a currency enum class
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 class Currency(Enum):
     """ Identifiers for all handled crypto currencies."""
@@ -61,20 +64,11 @@ CURRENCY_EXCHANGE_PATTERN = r'\s*(?P<FromCurrency>[\w]+)\s*->\s*(?P<ToCurrency>[
 def get_date_time_object(datetime_as_string):
     """
     Function for converting a string to a datetime.datetime object.
-    The return values' first element states whether the conversion has been
-    successful. If it has been successful, the datetime.datetime object is 
-    returned as the second element.
+    If the conversion is not possible a ValueError is thrown. Otherwise 
+    the datetime.datetime object is returned.
     """
-    try:
-        date_as_string, time_as_string = datetime_as_string.split()
-        year, month, day = [int(element) for element in date_as_string.split('-')]
-        hours, minutes, seconds = [int(element) for element in time_as_string.split(':')]
-        result = datetime.datetime(year, month, day, hours, minutes, seconds)
-    except ValueError:
-        if not datetime_as_string == "Timestamp (UTC)":
-            print(f'The string {datetime_as_string} could not be evaluated.')
-        return (False, None)
-    return (True, result)
+    date_format = "%Y-%m-%d %H:%M:%S"
+    return datetime.datetime.strptime(datetime_as_string, date_format)
 
 
 def match_currency_exchange_pattern(string_to_match):
@@ -190,10 +184,13 @@ class CryptoAquisitionRecordRemover: # pylint: disable=too-few-public-methods
         elif self.amount_to_be_removed > 0.0:
             relative_reduction_of_entry = (
                 aquisition_record.amount - self.amount_to_be_removed) / aquisition_record.amount
-            self.removed_crypto_bought_at += (1.0 -
-                                              relative_reduction_of_entry) * aquisition_record.bought_at
+            new_amount = (1.0 - relative_reduction_of_entry) * aquisition_record.bought_at
+            self.removed_crypto_bought_at += new_amount
             self.new_aquisition_records.append(CryptoAquisitionRecord(
-                aquisition_record.date_time, aquisition_record.amount - self.amount_to_be_removed, aquisition_record.bought_at * relative_reduction_of_entry))
+                aquisition_record.date_time,
+                aquisition_record.amount - self.amount_to_be_removed,
+                aquisition_record.bought_at * relative_reduction_of_entry)
+                )
             self.amount_to_be_removed = 0.0
         else:
             self.new_aquisition_records.append(aquisition_record)
@@ -214,14 +211,20 @@ class CryptoAquisitionData:
         The aquistion is given in terms of a crypto.com csv-datafile entry,
         which has been converted from a string to a list."""
         crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
-        currency_entry = get_crypto_aquisition_record_from_raw_data_entry(
-            raw_data_entry)
+        try:
+            currency_entry = get_crypto_aquisition_record_from_raw_data_entry(raw_data_entry)
+        except ValueError as e:
+            logger.error("A value error was raised: %s.", e)
+            logger.error("""While trying to parse the string: %s.
+                         The data entry is ignored.""", raw_data_entry
+                         )
+            return
         self.__add(crypto_currency, currency_entry)
 
     def __add(self, crypto_currency, currency_entry):
         if not crypto_currency in self.data_set:
             self.data_set[crypto_currency] = []
-        print(f"Adding entry for crypto currency {crypto_currency}")
+        logger.debug("Adding entry for crypto currency %s.", crypto_currency)
         self.data_set[crypto_currency].append(currency_entry)
         self.data_set[crypto_currency].sort(key=lambda x: x.date_time)
 
@@ -285,13 +288,18 @@ def main():
     """ Entry point for calling this file directly as a python script."""
     transaction_list = []
     date_times = []
-    with open('crypto_transactions_record_20230619_084542.csv', mode='r', newline='') as csvfile:
+    with open('crypto_transactions_record_20230619_084542.csv', encoding="utf-8",
+              mode='r', newline='') as csvfile:
         tax_report_reader = csv.reader(csvfile, delimiter=',')
         for row in tax_report_reader:
-            valid_date_time, date_time = get_date_time_object(
-                row[Heading.TIMESTAMP.value])
-            if valid_date_time:
-                date_times.append(date_time)
+            try:
+                date_time = get_date_time_object(
+                    row[Heading.TIMESTAMP.value])
+            except ValueError as e:
+                logger.error("""The time stamp in the data file could not be parsed: %s.
+                              Skip this line.""", e)
+                continue
+            date_times.append(date_time)
             new_transaction = row[Heading.IDENTIFIER.value]
             if new_transaction not in transaction_list:
                 transaction_list.append(new_transaction)

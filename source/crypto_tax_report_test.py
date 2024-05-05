@@ -5,19 +5,13 @@ import crypto_tax_report
 from crypto_tax_report import datetime
 
 
-def get_test_raw_data_entries():
-    return [[r'2021-12-02 04:10:03', r'Card Cashback', r'CRO', r'0.02827009', r'', r'', r'EUR', r'0.02', r'0.0219808333', r'referral_card_cashback', r'']]
-
-
 # Create a test class
 class TestRawDataConversions(unittest.TestCase):
 
     # Test case 1: parsing the date time string into an datetime object
     def test_get_date_time_object(self):
         raw_date_time = r'2021-12-02 04:10:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            raw_date_time)
-        self.assertTrue(parse_successful)
+        parse_result = crypto_tax_report.get_date_time_object(raw_date_time)
         self.assertEqual(parse_result.year, 2021)
         self.assertEqual(parse_result.month, 12)
         self.assertEqual(parse_result.day, 2)
@@ -29,40 +23,28 @@ class TestRawDataConversions(unittest.TestCase):
     def test_get_date_time_object_corrupt_string(self):
         # 1st: parts of string do not convert to int
         invalid_raw_date_time = r'20u21-12-02 04:10:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
         # 2nd: the number for the month is invalid
         invalid_raw_date_time = r'2021-13-03 04:10:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
         # 3rd: the number for the day is invalid
         invalid_raw_date_time = r'2021-12-33 04:10:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
         # 4th: the number for the hour is invalid
         invalid_raw_date_time = r'2021-12-23 25:10:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
         # 5th: the number for the minute is invalid
         invalid_raw_date_time = r'2021-12-23 23:60:03'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
         # 6th: the number for the second is invalid
         invalid_raw_date_time = r'2021-12-23 23:50:63'
-        parse_successful, parse_result = crypto_tax_report.get_date_time_object(
-            invalid_raw_date_time)
-        self.assertFalse(parse_successful)
-        self.assertEqual(parse_result, None)
+        with self.assertRaises(ValueError):
+            crypto_tax_report.get_date_time_object(invalid_raw_date_time)
 
     def test_match_buy_crypto_currency_with_euro(self):
         match_successful = crypto_tax_report.match_buy_crypto_currency_with_euro(
@@ -150,9 +132,13 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         self.assertEqual(expected_date_time,
                          crypto_aquisition_data_entry.date_time)
         self.assertEqual(float(
-            raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]), crypto_aquisition_data_entry.amount)
+            raw_data_entry[crypto_tax_report.Heading.TARGET_AMOUNT.value]),
+            crypto_aquisition_data_entry.amount
+            )
         self.assertEqual(float(
-            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]), crypto_aquisition_data_entry.bought_at)
+            raw_data_entry[crypto_tax_report.Heading.NATIVE_CURRENCY_AMOUNT.value]),
+            crypto_aquisition_data_entry.bought_at
+            )
 
     # Test case: Test the 'add' method
     def test_add(self):
@@ -163,26 +149,62 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         # Assert the expected result
         self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
         self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
-        # check all three entries
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][0], test_data[1])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][1], test_data[3])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][2], test_data[4])
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
-        # check all two ADA entries
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['ADA'][0], test_data[0])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['ADA'][1], test_data[2])
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
-        # check the SOL entry
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['SOL'][0], test_data[-1])
 
-    # Test case: Test the 'add' method, but do not add the entries according to their chronological order
+        # check the three CRO entries
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 5, 29, 19, 57, 7),
+            amount = 220.0,
+            bought_at = 19.91
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][0], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 9, 13, 13, 58, 2),
+            amount = 5000.0,
+            bought_at = 765.64
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][1], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 9, 15, 13, 33, 7),
+            amount = 5000.0,
+            bought_at = 800.38
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][2], reference_record)
+
+        # check the two ADA entries
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 5, 20, 12, 57, 28),
+            amount = 200.0,
+            bought_at = 316.61
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][0], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 6, 27, 12, 41, 1),
+            amount = 100.0,
+            bought_at = 107.59
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][1], reference_record)
+
+        # check the two SOL entry
+        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 11, 13, 12, 1, 1),
+            amount = 0.075,
+            bought_at = 15.03
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['SOL'][0],
+                         reference_record
+                         )
+
     def test_add_unsorted(self):
+        """ Test case: Test the 'add' method, but with unsorted input data.
+            The aquisition for each crypto currency should be ordered again.
+        """
         test_data = CryptoAquisitionDataTest.getTestData()
         for item in reversed(test_data):
             self.crypto_aquisition_data.add(item)  # add in reverse order
@@ -190,26 +212,58 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         # Assert the expected result
         self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
         self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
-        # check all three entries
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][0], test_data[1])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][1], test_data[3])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['CRO'][2], test_data[4])
+
+        # check the three CRO entries
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 5, 29, 19, 57, 7),
+            amount = 220.0,
+            bought_at = 19.91
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][0], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 9, 13, 13, 58, 2),
+            amount = 5000.0,
+            bought_at = 765.64
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][1], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 9, 15, 13, 33, 7),
+            amount = 5000.0,
+            bought_at = 800.38
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][2], reference_record)
+
+        # check the two ADA entries
         self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
-        # check all two ADA entries
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['ADA'][0], test_data[0])
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['ADA'][1], test_data[2])
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 5, 20, 12, 57, 28),
+            amount = 200.0,
+            bought_at = 316.61
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][0], reference_record)
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 6, 27, 12, 41, 1),
+            amount = 100.0,
+            bought_at = 107.59
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][1], reference_record)
+
+        # check the two SOL entry
         self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
-        # check the SOL entry
-        self.assert_crypto_aquisition_data_entry(
-            self.crypto_aquisition_data.data_set['SOL'][0], test_data[-1])
+
+        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+            date_time = datetime.datetime(2021, 11, 13, 12, 1, 1),
+            amount = 0.075,
+            bought_at = 15.03
+            )
+        self.assertEqual(self.crypto_aquisition_data.data_set['SOL'][0], reference_record)
 
     @staticmethod
-    def getTestDataForRemoval():
+    def get_testdata_for_removal():
         add_data = [
             ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-300.0", "ADA",
                 "200.0", "EUR", "300.0", "330.0", "viban_purchase",],
@@ -235,7 +289,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_remove(self):
 
-        add_data, remove_data = CryptoAquisitionDataTest.getTestDataForRemoval()
+        add_data, remove_data = CryptoAquisitionDataTest.get_testdata_for_removal()
         for item in add_data:
             self.crypto_aquisition_data.add(item)
         for item in remove_data:
