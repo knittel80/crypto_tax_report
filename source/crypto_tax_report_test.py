@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+"""
+This file provides unit tests for the functionality within the module crypto_tax_report.
+"""
+
+# pylint: disable=C0115,C0116
+
 import unittest
 import crypto_tax_report
 from crypto_tax_report import datetime, CryptoAquisitionRecord
@@ -109,7 +115,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         self.crypto_aquisition_data = crypto_tax_report.CryptoAquisitionData()
 
     @staticmethod
-    def getTestData():
+    def get_test_data():
         test_data = [
             ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-316.61", "ADA",
                 "200.0", "EUR", "316.61", "347.96758155565", "viban_purchase",],
@@ -142,7 +148,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     # Test case: Test the 'add' method
     def test_add(self):
-        test_data = CryptoAquisitionDataTest.getTestData()
+        test_data = CryptoAquisitionDataTest.get_test_data()
         for item in test_data:
             self.crypto_aquisition_data.add(item)
 
@@ -205,7 +211,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         """ Test case: Test the 'add' method, but with unsorted input data.
             The aquisition for each crypto currency should be ordered again.
         """
-        test_data = CryptoAquisitionDataTest.getTestData()
+        test_data = CryptoAquisitionDataTest.get_test_data()
         for item in reversed(test_data):
             self.crypto_aquisition_data.add(item)  # add in reverse order
 
@@ -285,9 +291,16 @@ class CryptoAquisitionDataTest(unittest.TestCase):
              "2000.0", "EUR", "2000.0", "2200.0", "crypto_viban_exchange",]
         ]
         # Define your key-value pairs
-        key_value_pairs = [("ADA", [CryptoAquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 75., 75)]), ("CRO", [CryptoAquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 1200., 240.), CryptoAquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)])]
+        key_value_pairs = [
+            ("ADA", [CryptoAquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 75., 75)]),
+            ("CRO", [
+                CryptoAquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 1200., 240.),
+                CryptoAquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
+                ]
+            )
+        ]
         # Create a dictionary using a dictionary comprehension
-        resulting_data = {key: value for key, value in key_value_pairs}
+        resulting_data = dict(key_value_pairs)
         return (add_data, remove_data, resulting_data)
 
     def test_remove(self):
@@ -299,9 +312,15 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             self.crypto_aquisition_data.remove(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), len(resulting_data['ADA']))
+        self.assertEqual(
+            len(self.crypto_aquisition_data.data_set['ADA']),
+            len(resulting_data['ADA'])
+        )
         self.assertEqual(self.crypto_aquisition_data.data_set['ADA'], resulting_data['ADA'])
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), len(resulting_data['CRO']))
+        self.assertEqual(
+            len(self.crypto_aquisition_data.data_set['CRO']),
+            len(resulting_data['CRO'])
+        )
         self.assertEqual(self.crypto_aquisition_data.data_set['CRO'], resulting_data['CRO'])
 
 

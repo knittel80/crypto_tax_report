@@ -145,7 +145,13 @@ class CryptoAquisitionRecord:
     tax_policy: Enum = TaxPolicy.CAPITAL_GAINS
 
     def __str__(self):
-        return f"Date and Time: {self.date_time}, Amount: {self.amount}, Bought At: {self.bought_at}, Tax Policy: {self.tax_policy.name}"
+        return (
+            f"Date and Time: {self.date_time}, "
+            f"Amount: {self.amount}, "
+            f"Bought At: {self.bought_at}, "
+            f"Tax Policy: {self.tax_policy.name}"
+        )
+
 
 def get_crypto_aquisition_record_from_raw_data_entry(raw_data_entry):
     """
@@ -174,7 +180,7 @@ class CryptoAquisitionRecordRemover: # pylint: disable=too-few-public-methods
         self.old_aquisition_records = aquisition_records
 
     def __call__(self):
-        logger.debug(f"Removing the amount of {self.amount_to_be_removed}.")
+        logger.debug("Removing the amount of {self.amount_to_be_removed}.")
         for record in self.old_aquisition_records:
             self.__handle_aquisition_record(record)
         self.old_aquisition_records = self.new_aquisition_records
@@ -239,11 +245,16 @@ class CryptoAquisitionData:
         """
         crypto_currency = raw_data_entry[Heading.SOURCE_CURRENCY.value]
         if not crypto_currency in self.data_set:
-            logger.error("Logical error: there should be an entry for the crypto currency {cryptoCurrency}.")
+            logger.error(
+                "Logical error: there should be an entry for the "
+                "crypto currency {cryptoCurrency}."
+            )
             return 0.0
         amount = raw_data_entry[Heading.SOURCE_AMOUNT.value]
-
-        logger.debug(f"Crypto transaction: removing the amount {amount} of the crypto curreny {crypto_currency}.")
+        logger.debug(
+            "Crypto transaction: removing the amount {amount} "
+            "of the crypto curreny {crypto_currency}."
+        )
         transaction_remover = CryptoAquisitionRecordRemover(
             self.data_set[crypto_currency], amount)
         transaction_remover()
