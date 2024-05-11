@@ -187,7 +187,8 @@ class CryptoAquisitionRecordRemover: # pylint: disable=too-few-public-methods
         return self.removed_crypto_bought_at
 
     def __handle_aquisition_record(self, aquisition_record):
-        if self.amount_to_be_removed > aquisition_record.amount:
+        # do not leave amounts of 1 / 100000 of the original sum
+        if self.amount_to_be_removed > (aquisition_record.amount * 0.99999):
             self.amount_to_be_removed -= aquisition_record.amount
             self.removed_crypto_bought_at += aquisition_record.bought_at
         elif self.amount_to_be_removed > 0.0:

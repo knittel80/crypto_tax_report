@@ -323,6 +323,63 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         )
         self.assertEqual(self.crypto_aquisition_data.data_set['CRO'], resulting_data['CRO'])
 
+    @staticmethod
+    def get_testdata_for_removal_of_full_entry():
+        add_data = [
+            ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-300.0", "ADA",
+                "200.0", "EUR", "300.0", "330.0", "viban_purchase",],
+            ["2021-05-29 19:57:07", "EUR -> CRO", "EUR", "-20.0", "CRO",
+             "200.0", "EUR", "20.00", "21.2", "viban_purchase",],
+            ["2021-06-27 12:41:01", "EUR -> ADA", "EUR", "-100.0", "ADA",
+             "100.0", "EUR", "100.0", "110.0", "viban_purchase",],
+            ["2021-09-13 13:58:02", "EUR -> CRO", "EUR", "-1000.0", "CRO",
+             "5000.0", "EUR", "1000.0", "1100.0", "viban_purchase",],
+            ["2021-09-15 13:33:07", "EUR -> CRO", "EUR", "-800.0", "CRO",
+             "2000.0", "EUR", "800.0", "880.0", "viban_purchase",]
+        ]
+        remove_data = [
+            ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-200.0", "EUR",
+                "400.0", "EUR", "400.0", "440.0", "crypto_viban_exchange",],
+            ["2022-01-28 08:11:13", "CRO -> EUR", "CRO", "-200.0", "EUR",
+             "100.0", "EUR", "100.0", "110.0", "crypto_viban_exchange",]
+        ]
+        # Define your key-value pairs
+        key_value_pairs = [
+            ("ADA", [CryptoAquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 100., 100)]),
+            ("CRO", [
+                CryptoAquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 5000., 1000.),
+                CryptoAquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
+                ]
+            )
+        ]
+        # Create a dictionary using a dictionary comprehension
+        resulting_data = dict(key_value_pairs)
+        return (add_data, remove_data, resulting_data)
+
+    def test_remove_full_entries(self):
+
+        add_data, remove_data, resulting_data = \
+            CryptoAquisitionDataTest.get_testdata_for_removal_of_full_entry()
+        for item in add_data:
+            self.crypto_aquisition_data.add(item)
+        for item in remove_data:
+            self.crypto_aquisition_data.remove(item)
+
+        for record in self.crypto_aquisition_data.data_set['ADA']: 
+            print(f"------------------------> {record}.")
+
+        # Assert the expected result
+        self.assertEqual(
+            len(self.crypto_aquisition_data.data_set['ADA']),
+            len(resulting_data['ADA'])
+        )
+        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'], resulting_data['ADA'])
+        self.assertEqual(
+            len(self.crypto_aquisition_data.data_set['CRO']),
+            len(resulting_data['CRO'])
+        )
+        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'], resulting_data['CRO'])
+
 
 if __name__ == '__main__':
     unittest.main()
