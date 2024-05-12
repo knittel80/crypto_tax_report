@@ -184,6 +184,10 @@ class CryptoAcquisitionRecordRemover: # pylint: disable=too-few-public-methods
         for record in self.old_acquisition_records:
             self.__handle_acquisition_record(record)
         self.old_acquisition_records = self.new_acquisition_records
+        if self.amount_to_be_removed != 0.0:
+            logger.error("There were not enough assets for the crypto sale. "
+                         "Open amount: %7.5f", self.amount_to_be_removed)
+            assert False, "Inconsistent data, see error log."
         return self.removed_crypto_bought_at
 
     def __handle_acquisition_record(self, acquisition_record):
@@ -248,7 +252,7 @@ class CryptoAquisitionData:
         if not crypto_currency in self.data_set:
             logger.error(
                 "Logical error: there should be an entry for the "
-                "crypto currency {cryptoCurrency}."
+                "crypto currency %s.", crypto_currency
             )
             return 0.0
         amount = raw_data_entry[Heading.SOURCE_AMOUNT.value]
