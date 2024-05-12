@@ -336,7 +336,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         )
 
     @staticmethod
-    def get_testdata_for_sale_of_single_purchase():
+    def get_testdata_for_sale_of_full_purchase_positions():
         sale_data = [
             ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-200.0", "EUR",
                 "400.0", "EUR", "400.0", "440.0", "crypto_viban_exchange",],
@@ -356,11 +356,68 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         expected_remaining_crypto_assets = dict(key_value_pairs)
         return (sale_data, expected_remaining_crypto_assets)
 
-    def test_remove_full_entries(self):
+    def test_sell_full_purchase_positions(self):
 
         initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
         crypto_sale_data, expected_remaining_crypto_assets = \
-            CryptoAquisitionDataTest.get_testdata_for_sale_of_single_purchase()
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_full_purchase_positions()
+        for item in initial_crypto_assets:
+            self.crypto_acquisition_data.add(item)
+        for item in crypto_sale_data:
+            self.crypto_acquisition_data.remove(item)
+
+        # Assert the expected result
+        self.assertEqual(
+            len(self.crypto_acquisition_data.data_set['ADA']),
+            len(expected_remaining_crypto_assets['ADA'])
+        )
+        self.assertEqual(
+            self.crypto_acquisition_data.data_set['ADA'],
+            expected_remaining_crypto_assets['ADA']
+        )
+        self.assertEqual(
+            len(self.crypto_acquisition_data.data_set['CRO']),
+            len(expected_remaining_crypto_assets['CRO'])
+        )
+        self.assertEqual(
+            self.crypto_acquisition_data.data_set['CRO'],
+            expected_remaining_crypto_assets['CRO']
+        )
+
+    @staticmethod
+    def get_testdata_for_sale_of_all_assets():
+        sale_data = [
+            ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-99.0", "EUR",
+                "180.0", "EUR", "180.0", "198.0", "crypto_viban_exchange",],
+            ["2021-07-09 14:01:56", "ADA -> EUR", "ADA", "-44.0", "EUR",
+                "100.0", "EUR", "100.0", "110.0", "crypto_viban_exchange",],
+            ["2021-09-29 07:00:12", "CRO -> EUR", "CRO", "-3130.0", "EUR",
+             "300.0", "EUR", "300.0", "330.0", "crypto_viban_exchange",],
+            ["2021-09-30 09:02:00", "ADA -> EUR", "ADA", "-157.0", "EUR",
+                "100.0", "EUR", "100.0", "110.0", "crypto_viban_exchange",],
+            ["2021-10-10 22:24:43", "CRO -> EUR", "CRO", "-2911.0", "EUR",
+             "250.0", "EUR", "250.0", "275.0", "crypto_viban_exchange",],
+            ["2021-11-08 18:09:11", "CRO -> EUR", "CRO", "-850.0", "EUR",
+             "70.0", "EUR", "70.0", "77.0", "crypto_viban_exchange",],
+            ["2022-01-01 01:18:39", "CRO -> EUR", "CRO", "-309.0", "EUR",
+             "50.0", "EUR", "50.0", "55.0", "crypto_viban_exchange",]
+        ]
+
+        # Define your key-value pairs
+        key_value_pairs = [
+            ("ADA", []),
+            ("CRO", [])
+        ]
+        # Create a dictionary using a dictionary comprehension
+        expected_remaining_crypto_assets = dict(key_value_pairs)
+        return (sale_data, expected_remaining_crypto_assets)
+
+    def test_sell_all_crypto_assets(self):
+
+        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
+        crypto_sale_data, expected_remaining_crypto_assets = \
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_all_assets()
+        print(f"number of sales: {len(crypto_sale_data)}")
         for item in initial_crypto_assets:
             self.crypto_acquisition_data.add(item)
         for item in crypto_sale_data:
