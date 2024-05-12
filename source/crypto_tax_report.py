@@ -180,7 +180,7 @@ class CryptoAcquisitionRecordRemover: # pylint: disable=too-few-public-methods
         self.old_acquisition_records = aquisition_records
 
     def __call__(self):
-        logger.debug("Removing the amount of {self.amount_to_be_removed}.")
+        logger.debug("Removing the amount of: %7.2f ", self.amount_to_be_removed)
         for record in self.old_acquisition_records:
             self.__handle_acquisition_record(record)
         self.old_acquisition_records = self.new_acquisition_records
@@ -253,8 +253,8 @@ class CryptoAquisitionData:
             return 0.0
         amount = raw_data_entry[Heading.SOURCE_AMOUNT.value]
         logger.debug(
-            "Crypto transaction: removing the amount {amount} "
-            "of the crypto curreny {crypto_currency}."
+            "Crypto transaction: removing the amount %s "
+            "of the crypto curreny %s.", amount, crypto_currency
         )
         transaction_remover = CryptoAcquisitionRecordRemover(
             self.data_set[crypto_currency], amount)
