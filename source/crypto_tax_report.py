@@ -133,7 +133,7 @@ def match_swap_of_crypto_currency(string_to_match):
 
 
 @dataclass
-class CryptoAquisitionRecord:
+class CryptoAcquisitionRecord:
     """
     Class representing a data entry of a single acquisition transaction of a
     crypto currency. It contains all relevant data in order to compute the capital
@@ -153,7 +153,7 @@ class CryptoAquisitionRecord:
         )
 
 
-def get_crypto_aquisition_record_from_raw_data_entry(raw_data_entry):
+def get_crypto_acquisition_record_from_raw_data_entry(raw_data_entry):
     """
     Functon to convert a list, obtained from reading in a data row in crypto.com's
     csv file, to an object of type CryptoAquisitionRecord.
@@ -161,10 +161,10 @@ def get_crypto_aquisition_record_from_raw_data_entry(raw_data_entry):
     date_time = get_date_time_object(raw_data_entry[Heading.TIMESTAMP.value])
     crypto_amount = float(raw_data_entry[Heading.TARGET_AMOUNT.value])
     euro_amount = float(raw_data_entry[Heading.NATIVE_CURRENCY_AMOUNT.value])
-    return CryptoAquisitionRecord(date_time, crypto_amount, euro_amount)
+    return CryptoAcquisitionRecord(date_time, crypto_amount, euro_amount)
 
 
-class CryptoAquisitionRecordRemover: # pylint: disable=too-few-public-methods
+class CryptoAcquisitionRecordRemover: # pylint: disable=too-few-public-methods
     """
     Functor, whose constructor is called with the list of actual aquisition
     records of a certain crypto currency and the amount of how much of it should
@@ -176,34 +176,34 @@ class CryptoAquisitionRecordRemover: # pylint: disable=too-few-public-methods
     def __init__(self, aquisition_records, amount_to_remove):
         self.amount_to_be_removed = abs(float(amount_to_remove))
         self.removed_crypto_bought_at = 0.0
-        self.new_aquisition_records = []
-        self.old_aquisition_records = aquisition_records
+        self.new_acquisition_records = []
+        self.old_acquisition_records = aquisition_records
 
     def __call__(self):
         logger.debug("Removing the amount of {self.amount_to_be_removed}.")
-        for record in self.old_aquisition_records:
-            self.__handle_aquisition_record(record)
-        self.old_aquisition_records = self.new_aquisition_records
+        for record in self.old_acquisition_records:
+            self.__handle_acquisition_record(record)
+        self.old_acquisition_records = self.new_acquisition_records
         return self.removed_crypto_bought_at
 
-    def __handle_aquisition_record(self, aquisition_record):
+    def __handle_acquisition_record(self, acquisition_record):
         # do not leave amounts of 1 / 100000 of the original sum
-        if self.amount_to_be_removed > (aquisition_record.amount * 0.99999):
-            self.amount_to_be_removed -= aquisition_record.amount
-            self.removed_crypto_bought_at += aquisition_record.bought_at
+        if self.amount_to_be_removed > (acquisition_record.amount * 0.99999):
+            self.amount_to_be_removed -= acquisition_record.amount
+            self.removed_crypto_bought_at += acquisition_record.bought_at
         elif self.amount_to_be_removed > 0.0:
             relative_reduction_of_entry = (
-                aquisition_record.amount - self.amount_to_be_removed) / aquisition_record.amount
-            new_amount = (1.0 - relative_reduction_of_entry) * aquisition_record.bought_at
+                acquisition_record.amount - self.amount_to_be_removed) / acquisition_record.amount
+            new_amount = (1.0 - relative_reduction_of_entry) * acquisition_record.bought_at
             self.removed_crypto_bought_at += new_amount
-            self.new_aquisition_records.append(CryptoAquisitionRecord(
-                aquisition_record.date_time,
-                aquisition_record.amount - self.amount_to_be_removed,
-                aquisition_record.bought_at * relative_reduction_of_entry)
+            self.new_acquisition_records.append(CryptoAcquisitionRecord(
+                acquisition_record.date_time,
+                acquisition_record.amount - self.amount_to_be_removed,
+                acquisition_record.bought_at * relative_reduction_of_entry)
                 )
             self.amount_to_be_removed = 0.0
         else:
-            self.new_aquisition_records.append(aquisition_record)
+            self.new_acquisition_records.append(acquisition_record)
 
 
 class CryptoAquisitionData:
@@ -222,7 +222,7 @@ class CryptoAquisitionData:
         which has been converted from a string to a list."""
         crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
         try:
-            currency_entry = get_crypto_aquisition_record_from_raw_data_entry(raw_data_entry)
+            currency_entry = get_crypto_acquisition_record_from_raw_data_entry(raw_data_entry)
         except ValueError as e:
             logger.error("A value error was raised: %s.", e)
             logger.error("""While trying to parse the string: %s.
@@ -256,10 +256,10 @@ class CryptoAquisitionData:
             "Crypto transaction: removing the amount {amount} "
             "of the crypto curreny {crypto_currency}."
         )
-        transaction_remover = CryptoAquisitionRecordRemover(
+        transaction_remover = CryptoAcquisitionRecordRemover(
             self.data_set[crypto_currency], amount)
         transaction_remover()
-        self.data_set[crypto_currency] = transaction_remover.new_aquisition_records
+        self.data_set[crypto_currency] = transaction_remover.new_acquisition_records
         return float(transaction_remover.removed_crypto_bought_at)
 
     def swap(self, raw_data_entry):
@@ -271,7 +271,7 @@ class CryptoAquisitionData:
         """
         bought_at = self.remove(raw_data_entry)
         crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
-        currency_entry = get_crypto_aquisition_record_from_raw_data_entry(
+        currency_entry = get_crypto_acquisition_record_from_raw_data_entry(
             raw_data_entry)
         currency_entry.bought_at = bought_at
         self.__add(crypto_currency, currency_entry)

@@ -8,7 +8,7 @@ This file provides unit tests for the functionality within the module crypto_tax
 
 import unittest
 import crypto_tax_report
-from crypto_tax_report import datetime, CryptoAquisitionRecord
+from crypto_tax_report import datetime, CryptoAcquisitionRecord
 
 
 # Create a test class
@@ -112,7 +112,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
     # Set up the test environment
     def setUp(self):
         # Initialize an instance of the class to be tested
-        self.crypto_aquisition_data = crypto_tax_report.CryptoAquisitionData()
+        self.crypto_acquisition_data = crypto_tax_report.CryptoAquisitionData()
 
     @staticmethod
     def get_crypto_purchase_data():
@@ -150,60 +150,60 @@ class CryptoAquisitionDataTest(unittest.TestCase):
     def test_add(self):
         test_data = CryptoAquisitionDataTest.get_crypto_purchase_data()
         for item in test_data:
-            self.crypto_aquisition_data.add(item)
+            self.crypto_acquisition_data.add(item)
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set), 3)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['CRO']), 3)
 
         # check the three CRO entries
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 5, 29, 19, 57, 7),
             amount = 220.0,
             bought_at = 19.91
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][0], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][0], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 9, 13, 13, 58, 2),
             amount = 5000.0,
             bought_at = 765.64
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][1], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][1], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 9, 15, 13, 33, 7),
             amount = 5000.0,
             bought_at = 800.38
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][2], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][2], reference_record)
 
         # check the two ADA entries
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['ADA']), 2)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 5, 20, 12, 57, 28),
             amount = 200.0,
             bought_at = 316.61
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][0], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][0], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 6, 27, 12, 41, 1),
             amount = 100.0,
             bought_at = 107.59
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][1], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][1], reference_record)
 
         # check the two SOL entry
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['SOL']), 1)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 11, 13, 12, 1, 1),
             amount = 0.075,
             bought_at = 15.03
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['SOL'][0],
+        self.assertEqual(self.crypto_acquisition_data.data_set['SOL'][0],
                          reference_record
                          )
 
@@ -213,60 +213,60 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         """
         test_data = CryptoAquisitionDataTest.get_crypto_purchase_data()
         for item in reversed(test_data):
-            self.crypto_aquisition_data.add(item)  # add in reverse order
+            self.crypto_acquisition_data.add(item)  # add in reverse order
 
         # Assert the expected result
-        self.assertEqual(len(self.crypto_aquisition_data.data_set), 3)
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['CRO']), 3)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set), 3)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['CRO']), 3)
 
         # check the three CRO entries
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 5, 29, 19, 57, 7),
             amount = 220.0,
             bought_at = 19.91
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][0], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][0], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 9, 13, 13, 58, 2),
             amount = 5000.0,
             bought_at = 765.64
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][1], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][1], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 9, 15, 13, 33, 7),
             amount = 5000.0,
             bought_at = 800.38
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['CRO'][2], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][2], reference_record)
 
         # check the two ADA entries
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['ADA']), 2)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['ADA']), 2)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 5, 20, 12, 57, 28),
             amount = 200.0,
             bought_at = 316.61
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][0], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][0], reference_record)
 
-        reference_record = crypto_tax_report.CryptoAquisitionRecord(
+        reference_record = crypto_tax_report.CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 6, 27, 12, 41, 1),
             amount = 100.0,
             bought_at = 107.59
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['ADA'][1], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][1], reference_record)
 
         # check the two SOL entry
-        self.assertEqual(len(self.crypto_aquisition_data.data_set['SOL']), 1)
+        self.assertEqual(len(self.crypto_acquisition_data.data_set['SOL']), 1)
 
-        reference_record = CryptoAquisitionRecord(
+        reference_record = CryptoAcquisitionRecord(
             date_time = datetime.datetime(2021, 11, 13, 12, 1, 1),
             amount = 0.075,
             bought_at = 15.03
             )
-        self.assertEqual(self.crypto_aquisition_data.data_set['SOL'][0], reference_record)
+        self.assertEqual(self.crypto_acquisition_data.data_set['SOL'][0], reference_record)
 
     @staticmethod
     def get_simple_crypto_purchase_data():
@@ -296,10 +296,10 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         ]
         # Define your key-value pairs
         key_value_pairs = [
-            ("ADA", [CryptoAquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 75., 75)]),
+            ("ADA", [CryptoAcquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 75., 75)]),
             ("CRO", [
-                CryptoAquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 1200., 240.),
-                CryptoAquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
+                CryptoAcquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 1200., 240.),
+                CryptoAcquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
                 ]
             )
         ]
@@ -313,25 +313,25 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         crypto_sale_data, expected_remaining_crypto_assets = \
             CryptoAquisitionDataTest.get_testdata_for_crypto_sale()
         for item in initial_crypto_assets:
-            self.crypto_aquisition_data.add(item)
+            self.crypto_acquisition_data.add(item)
         for item in crypto_sale_data:
-            self.crypto_aquisition_data.remove(item)
+            self.crypto_acquisition_data.remove(item)
 
         # Assert the expected result
         self.assertEqual(
-            len(self.crypto_aquisition_data.data_set['ADA']),
+            len(self.crypto_acquisition_data.data_set['ADA']),
             len(expected_remaining_crypto_assets['ADA'])
         )
         self.assertEqual(
-            self.crypto_aquisition_data.data_set['ADA'],
+            self.crypto_acquisition_data.data_set['ADA'],
             expected_remaining_crypto_assets['ADA']
         )
         self.assertEqual(
-            len(self.crypto_aquisition_data.data_set['CRO']),
+            len(self.crypto_acquisition_data.data_set['CRO']),
             len(expected_remaining_crypto_assets['CRO'])
         )
         self.assertEqual(
-            self.crypto_aquisition_data.data_set['CRO'],
+            self.crypto_acquisition_data.data_set['CRO'],
             expected_remaining_crypto_assets['CRO']
         )
 
@@ -345,10 +345,10 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         ]
         # Define your key-value pairs
         key_value_pairs = [
-            ("ADA", [CryptoAquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 100., 100)]),
+            ("ADA", [CryptoAcquisitionRecord(datetime.datetime(2021,6,27,12,41,1), 100., 100)]),
             ("CRO", [
-                CryptoAquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 5000., 1000.),
-                CryptoAquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
+                CryptoAcquisitionRecord(datetime.datetime(2021,9,13,13,58,2), 5000., 1000.),
+                CryptoAcquisitionRecord(datetime.datetime(2021,9,15,13,33,7), 2000., 800.)
                 ]
             )
         ]
@@ -362,25 +362,25 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         crypto_sale_data, expected_remaining_crypto_assets = \
             CryptoAquisitionDataTest.get_testdata_for_sale_of_single_purchase()
         for item in initial_crypto_assets:
-            self.crypto_aquisition_data.add(item)
+            self.crypto_acquisition_data.add(item)
         for item in crypto_sale_data:
-            self.crypto_aquisition_data.remove(item)
+            self.crypto_acquisition_data.remove(item)
 
         # Assert the expected result
         self.assertEqual(
-            len(self.crypto_aquisition_data.data_set['ADA']),
+            len(self.crypto_acquisition_data.data_set['ADA']),
             len(expected_remaining_crypto_assets['ADA'])
         )
         self.assertEqual(
-            self.crypto_aquisition_data.data_set['ADA'],
+            self.crypto_acquisition_data.data_set['ADA'],
             expected_remaining_crypto_assets['ADA']
         )
         self.assertEqual(
-            len(self.crypto_aquisition_data.data_set['CRO']),
+            len(self.crypto_acquisition_data.data_set['CRO']),
             len(expected_remaining_crypto_assets['CRO'])
         )
         self.assertEqual(
-            self.crypto_aquisition_data.data_set['CRO'],
+            self.crypto_acquisition_data.data_set['CRO'],
             expected_remaining_crypto_assets['CRO']
         )
 
