@@ -311,16 +311,16 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         return (sale_data, expected_remaining_crypto_assets)
 
     def test_remove(self):
-
+        # Arrange
         initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
-        crypto_sale_data, expected_remaining_crypto_assets = \
-            CryptoAquisitionDataTest.get_testdata_for_crypto_sale()
         for item in initial_crypto_assets:
             self.crypto_acquisition_data.add(item)
+        # Act
+        crypto_sale_data, expected_remaining_crypto_assets = \
+            CryptoAquisitionDataTest.get_testdata_for_crypto_sale()
         for item in crypto_sale_data:
             self.crypto_acquisition_data.remove(item)
-
-        # Assert the expected result
+        # Assert
         self.assertEqual(
             len(self.crypto_acquisition_data.data_set['ADA']),
             len(expected_remaining_crypto_assets['ADA'])
@@ -445,7 +445,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         )
 
     @staticmethod
-    def get_testdata_for_sale_of_unavailable_assets_1():
+    def get_testdata_for_sale_of_unavailable_ada():
         sale_data = [
             ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-99.0", "EUR",
                 "180.0", "EUR", "180.0", "198.0", "crypto_viban_exchange",],
@@ -454,29 +454,50 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             ["2021-09-29 07:00:12", "CRO -> EUR", "CRO", "-3130.0", "EUR",
              "300.0", "EUR", "300.0", "330.0", "crypto_viban_exchange",],
             ["2021-09-30 09:02:00", "ADA -> EUR", "ADA", "-157.0", "EUR",
-                "100.0", "EUR", "100.0", "110.0", "crypto_viban_exchange",],
-            ["2021-10-10 22:24:43", "CRO -> EUR", "CRO", "-2911.0", "EUR",
-             "250.0", "EUR", "250.0", "275.0", "crypto_viban_exchange",],
-            ["2021-11-08 18:09:11", "CRO -> EUR", "CRO", "-850.0", "EUR",
-             "70.0", "EUR", "70.0", "77.0", "crypto_viban_exchange",],
-            ["2022-01-01 01:18:39", "CRO -> EUR", "CRO", "-309.0", "EUR",
-             "50.0", "EUR", "50.0", "55.0", "crypto_viban_exchange",]
+                "100.0", "EUR", "100.0", "110.0", "crypto_viban_exchange",]
         ]
         return (sale_data, [])
 
-    def test_sell_of_unavailable_crypto_assets_1(self):
-
+    def test_sale_of_unavailable_crypto_ada(self):
+        # Arrange
         initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
-        crypto_sale_data, _ = \
-            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_assets_1()
         for item in initial_crypto_assets:
             self.crypto_acquisition_data.add(item)
+        # Act
+        crypto_sale_data, _ = \
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_ada()
+        for item in crypto_sale_data[:-1]:
+            self.crypto_acquisition_data.remove(item)
+        # Assert
         with self.assertRaises(AssertionError):
-            for item in crypto_sale_data:
-                self.crypto_acquisition_data.remove(item)
+            self.crypto_acquisition_data.remove(crypto_sale_data[-1])
 
     @staticmethod
-    def get_testdata_for_sale_of_unavailable_assets_2():
+    def get_testdata_for_sale_of_unavailable_ada_timestamps_considered():
+        sale_data = [
+            ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-99.0", "EUR",
+                "180.0", "EUR", "180.0", "198.0", "crypto_viban_exchange",],
+            ["2021-06-12 14:01:56", "ADA -> EUR", "ADA", "-101.2", "EUR",
+                "160.0", "EUR", "160.0", "176.0", "crypto_viban_exchange",]
+        ]
+        return (sale_data, [])
+
+    def test_that_assets_added_later_do_not_affect_the_sale_of_assets_added_earlier(self):
+        # Arrange
+        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
+        for item in initial_crypto_assets:
+            self.crypto_acquisition_data.add(item)
+        # Act
+        crypto_sale_data, _ = \
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_ada_timestamps_considered()
+        for item in crypto_sale_data[:-1]:
+            self.crypto_acquisition_data.remove(item)
+        # Assert that exception is raised. At the time of removal there are not enough ada assets
+        with self.assertRaises(AssertionError):
+            self.crypto_acquisition_data.remove(crypto_sale_data[-1])
+
+    @staticmethod
+    def get_testdata_for_sale_of_unavailable_cro():
         sale_data = [
             ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-99.0", "EUR",
                 "180.0", "EUR", "180.0", "198.0", "crypto_viban_exchange",],
@@ -495,16 +516,19 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         ]
         return (sale_data, [])
 
-    def test_sell_of_unavailable_crypto_assets_2(self):
-
+    def test_sale_of_unavailable_cro(self):
+        # Arrange
         initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
         crypto_sale_data, _ = \
-            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_assets_2()
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_cro()
         for item in initial_crypto_assets:
             self.crypto_acquisition_data.add(item)
+        # Act
+        for item in crypto_sale_data[:-1]:
+            self.crypto_acquisition_data.remove(item)
+        # Assert
         with self.assertRaises(AssertionError):
-            for item in crypto_sale_data:
-                self.crypto_acquisition_data.remove(item)
+            self.crypto_acquisition_data.remove(crypto_sale_data[-1])
 
 if __name__ == '__main__':
     unittest.main()

@@ -173,8 +173,9 @@ class CryptoAcquisitionRecordRemover: # pylint: disable=too-few-public-methods
     Euro amount at which the removed amount of crypto currency has been bought.
     """
 
-    def __init__(self, aquisition_records, amount_to_remove):
+    def __init__(self, aquisition_records, amount_to_remove, removal_date_time):
         self.amount_to_be_removed = abs(float(amount_to_remove))
+        self.removal_date_time = removal_date_time
         self.removed_crypto_bought_at = 0.0
         self.new_acquisition_records = []
         self.old_acquisition_records = aquisition_records
@@ -182,7 +183,14 @@ class CryptoAcquisitionRecordRemover: # pylint: disable=too-few-public-methods
     def __call__(self):
         logger.debug("Removing the amount of: %7.2f ", self.amount_to_be_removed)
         for record in self.old_acquisition_records:
-            self.__handle_acquisition_record(record)
+            if record.date_time <= self.removal_date_time:
+                self.__handle_acquisition_record(record)
+            else:
+                self.new_acquisition_records.append(record)
+                logger.warning(
+                    "Skipping the record at %s because it is after the transaction date %s."
+                    , record.date_time, self.removal_date_time
+                )
         self.old_acquisition_records = self.new_acquisition_records
         if self.amount_to_be_removed != 0.0:
             logger.error("There were not enough assets for the crypto sale. "
@@ -260,8 +268,9 @@ class CryptoAquisitionData:
             "Crypto transaction: removing the amount %s "
             "of the crypto curreny %s.", amount, crypto_currency
         )
+        date_time = get_date_time_object(raw_data_entry[Heading.TIMESTAMP.value])
         transaction_remover = CryptoAcquisitionRecordRemover(
-            self.data_set[crypto_currency], amount)
+            self.data_set[crypto_currency], amount, date_time)
         transaction_remover()
         self.data_set[crypto_currency] = transaction_remover.new_acquisition_records
         return float(transaction_remover.removed_crypto_bought_at)
