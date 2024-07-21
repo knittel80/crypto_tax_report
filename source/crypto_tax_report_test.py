@@ -106,6 +106,41 @@ class TestRawDataConversions(unittest.TestCase):
         self.assertFalse(match_successful)
 
 
+
+class SimplePurchaseData:
+    @staticmethod
+    def as_raw():
+        """
+        This static method returns a list of lists, where each list represents
+        a single purchase of a crypto currency.
+        """
+        crypto_purchase_data = [
+            ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-300.0", "ADA",
+                "200.0", "EUR", "300.0", "330.0", "viban_purchase",],
+            ["2021-05-29 19:57:07", "EUR -> CRO", "EUR", "-20.0", "CRO",
+             "200.0", "EUR", "20.00", "21.2", "viban_purchase",],
+            ["2021-06-27 12:41:01", "EUR -> ADA", "EUR", "-100.0", "ADA",
+             "100.0", "EUR", "100.0", "110.0", "viban_purchase",],
+            ["2021-09-13 13:58:02", "EUR -> CRO", "EUR", "-1000.0", "CRO",
+             "5000.0", "EUR", "1000.0", "1100.0", "viban_purchase",],
+            ["2021-09-15 13:33:07", "EUR -> CRO", "EUR", "-800.0", "CRO",
+             "2000.0", "EUR", "800.0", "880.0", "viban_purchase",]
+        ]
+        return crypto_purchase_data
+
+    @staticmethod
+    def as_crypto_acquisition_data():
+        """
+        This static method converts the raw purchase data into a format suitable
+        for crypto acquisition tracking.
+        Returns:
+            A CryptoAcquisitionData instance populated with the purchase records.
+        """
+        crypto_acquisition_data = crypto_tax_report.CryptoAquisitionData()
+        for item in SimplePurchaseData.as_raw():
+            crypto_acquisition_data.add(item)
+        return crypto_acquisition_data
+
 class CryptoAquisitionDataTest(unittest.TestCase):
 
     # Set up the test environment
@@ -272,22 +307,6 @@ class CryptoAquisitionDataTest(unittest.TestCase):
         self.assertEqual(self.crypto_acquisition_data.data_set['SOL'][0], reference_record)
 
     @staticmethod
-    def get_simple_crypto_purchase_data():
-        crypto_purchase_data = [
-            ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-300.0", "ADA",
-                "200.0", "EUR", "300.0", "330.0", "viban_purchase",],
-            ["2021-05-29 19:57:07", "EUR -> CRO", "EUR", "-20.0", "CRO",
-             "200.0", "EUR", "20.00", "21.2", "viban_purchase",],
-            ["2021-06-27 12:41:01", "EUR -> ADA", "EUR", "-100.0", "ADA",
-             "100.0", "EUR", "100.0", "110.0", "viban_purchase",],
-            ["2021-09-13 13:58:02", "EUR -> CRO", "EUR", "-1000.0", "CRO",
-             "5000.0", "EUR", "1000.0", "1100.0", "viban_purchase",],
-            ["2021-09-15 13:33:07", "EUR -> CRO", "EUR", "-800.0", "CRO",
-             "2000.0", "EUR", "800.0", "880.0", "viban_purchase",]
-        ]
-        return crypto_purchase_data
-
-    @staticmethod
     def get_testdata_for_crypto_sale():
         sale_data = [
             ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-100.0", "EUR",
@@ -312,9 +331,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_remove(self):
         # Arrange
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         # Act
         crypto_sale_data, expected_remaining_crypto_assets = \
             CryptoAquisitionDataTest.get_testdata_for_crypto_sale()
@@ -361,11 +378,11 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_sell_full_purchase_positions(self):
 
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
+        # Arrange
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         crypto_sale_data, expected_remaining_crypto_assets = \
             CryptoAquisitionDataTest.get_testdata_for_sale_of_full_purchase_positions()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
+        # Act
         for item in crypto_sale_data:
             self.crypto_acquisition_data.remove(item)
 
@@ -418,11 +435,9 @@ class CryptoAquisitionDataTest(unittest.TestCase):
     def test_sell_all_crypto_assets(self):
         logger.debug("Entering the test method: ")
 
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         crypto_sale_data, expected_remaining_crypto_assets = \
             CryptoAquisitionDataTest.get_testdata_for_sale_of_all_assets()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
         for item in crypto_sale_data:
             self.crypto_acquisition_data.remove(item)
 
@@ -460,9 +475,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_sale_of_unavailable_crypto_ada(self):
         # Arrange
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         # Act
         crypto_sale_data, _ = \
             CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_ada()
@@ -473,7 +486,7 @@ class CryptoAquisitionDataTest(unittest.TestCase):
             self.crypto_acquisition_data.remove(crypto_sale_data[-1])
 
     @staticmethod
-    def get_testdata_for_sale_of_unavailable_ada_timestamps_considered():
+    def get_testdata_for_sale_of_unavailable_ada_tstamps_considered():
         sale_data = [
             ["2021-05-30 10:24:33", "ADA -> EUR", "ADA", "-99.0", "EUR",
                 "180.0", "EUR", "180.0", "198.0", "crypto_viban_exchange",],
@@ -484,12 +497,10 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_that_assets_added_later_do_not_affect_the_sale_of_assets_added_earlier(self):
         # Arrange
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         # Act
         crypto_sale_data, _ = \
-            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_ada_timestamps_considered()
+            CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_ada_tstamps_considered()
         for item in crypto_sale_data[:-1]:
             self.crypto_acquisition_data.remove(item)
         # Assert that exception is raised. At the time of removal there are not enough ada assets
@@ -518,17 +529,96 @@ class CryptoAquisitionDataTest(unittest.TestCase):
 
     def test_sale_of_unavailable_cro(self):
         # Arrange
-        initial_crypto_assets = CryptoAquisitionDataTest.get_simple_crypto_purchase_data()
+        self.crypto_acquisition_data = SimplePurchaseData.as_crypto_acquisition_data()
         crypto_sale_data, _ = \
             CryptoAquisitionDataTest.get_testdata_for_sale_of_unavailable_cro()
-        for item in initial_crypto_assets:
-            self.crypto_acquisition_data.add(item)
         # Act
         for item in crypto_sale_data[:-1]:
             self.crypto_acquisition_data.remove(item)
         # Assert
         with self.assertRaises(AssertionError):
             self.crypto_acquisition_data.remove(crypto_sale_data[-1])
+
+
+class CryptoSwapTest(unittest.TestCase):
+
+    # Set up the test environment
+    def setUp(self):
+        logger.info("Entering the test case %s.", self._testMethodName)
+        # Initialize an instance of the class to be tested
+        self.crypto_acquisition_data = crypto_tax_report.CryptoAquisitionData()
+
+    def tearDown(self) -> None:
+        logger.info("Leaving the test case %s.", self._testMethodName)
+
+    def test_swap_single_crypto_assets(self):
+        """
+        ["2021-05-20 12:57:28", "EUR -> ADA", "EUR", "-225.0", "ADA",
+            "150.0", "EUR", "225.0", "247.5", "viban_purchase",],
+        ["2021-05-29 19:57:07", "EUR -> CRO", "EUR", "-20.0", "CRO",
+         "200.0", "EUR", "20.00", "21.2", "viban_purchase",],
+        ["2021-06-27 12:41:01", "EUR -> ADA", "EUR", "-100.0", "ADA",
+         "100.0", "EUR", "100.0", "110.0", "viban_purchase",],
+        ["2021-09-13 13:58:02", "EUR -> CRO", "EUR", "-1000.0", "CRO",
+         "5000.0", "EUR", "1000.0", "1100.0", "viban_purchase",],
+        ["2021-09-15 13:33:07", "EUR -> CRO", "EUR", "-800.0", "CRO",
+             "2000.0", "EUR", "800.0", "880.0", "viban_purchase",]
+        """
+        # Arrange
+        initial_aquistion_data = self.crypto_acquisition_data =  \
+            SimplePurchaseData.as_crypto_acquisition_data()
+        # Act
+        crypto_swap_data = [
+            ["2021-12-06 14:01:56", "ADA -> CRO", "ADA", "-50.0", "CRO",
+                "200.0", "ADA", "40.0", "40.0", "crypto_viban_exchange",]
+        ]
+        for item in crypto_swap_data:
+            self.crypto_acquisition_data.swap(item)
+        # Assert
+        self.assertEqual(
+            len(self.crypto_acquisition_data.data_set['ADA']),
+            2
+        )
+        self.assertEqual(
+            len(self.crypto_acquisition_data.data_set['CRO']),
+            4
+        )
+
+        # check the three ADA entries
+        reduced_ada_record = crypto_tax_report.CryptoAcquisitionRecord(
+            date_time = datetime.datetime(2021, 5, 20, 12, 57, 28),
+            amount = 150.0,
+            bought_at = 225.0
+            )
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][0], reduced_ada_record)
+        # The other ADA record remains unchanged
+        self.assertEqual(self.crypto_acquisition_data.data_set['ADA'][1],
+                         initial_aquistion_data.data_set['ADA'][1])
+
+
+        new_cro_record = crypto_tax_report.CryptoAcquisitionRecord(
+            date_time = datetime.datetime(2021, 12, 6, 14, 1, 56),
+            amount = 200.0,
+            bought_at = 40.0
+            )
+
+        # please print the fourth CRO entry
+        self.assertEqual(self.crypto_acquisition_data.data_set['CRO'][3], new_cro_record)
+        # The other CRO records remain unchanged
+        # Breaking down the assertions into multiple lines for better readability
+        self.assertEqual(
+            self.crypto_acquisition_data.data_set['CRO'][0],
+            initial_aquistion_data.data_set['CRO'][0]
+        )
+        self.assertEqual(
+            self.crypto_acquisition_data.data_set['CRO'][1],
+            initial_aquistion_data.data_set['CRO'][1]
+        )
+        self.assertEqual(
+            self.crypto_acquisition_data.data_set['CRO'][2],
+            initial_aquistion_data.data_set['CRO'][2]
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -282,11 +282,10 @@ class CryptoAquisitionData:
         terms of a crypto.com csv-datafile entry, which has been converted from
         a string to a list.
         """
-        bought_at = self.remove(raw_data_entry)
+        self.remove(raw_data_entry)
         crypto_currency = raw_data_entry[Heading.TARGET_CURRENCY.value]
         currency_entry = get_crypto_acquisition_record_from_raw_data_entry(
             raw_data_entry)
-        currency_entry.bought_at = bought_at
         self.__add(crypto_currency, currency_entry)
 
 
